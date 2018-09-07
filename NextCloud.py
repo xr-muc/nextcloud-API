@@ -1,67 +1,97 @@
 import requests
 
+
 class Req():
-    #WrapRequests
-    def rtn(self,resp):
-        return resp.json()
+    def rtn(self, resp):
+        if self.to_json:
+            return resp.json()
+        else:
+            return resp.content.decode("UTF-8")
+
     def get(self,ur):
+        ur = self.get_full_url(ur)
+        print(f"Getting {ur}")
         res = requests.get(ur,auth=self.auth_pk,headers=self.h_get)
         return self.rtn(res)
     def post(self,ur,dt=None):
+        ur = self.get_full_url(ur)
         if dt == None: res = requests.post(ur,auth=self.auth_pk,headers=self.h_post)
         else: res = requests.post(ur,auth=self.auth_pk,data=dt,headers=self.h_post)
         return self.rtn(res)
     def put(self,ur,dt=None):
+        ur = self.get_full_url(ur)
         if dt == None: res = requests.put(ur,auth=self.auth_pk,headers=self.h_post)
         else: res = requests.put(ur,auth=self.auth_pk,data=dt,headers=self.h_post)
         return self.rtn(res)
     def delete(self,ur,dt=None):
+        ur = self.get_full_url(ur)
         if dt == None: res = requests.delete(ur,auth=self.auth_pk,headers=self.h_post)
         else: res = requests.delete(ur,auth=self.auth_pk,data=dt,headers=self.h_post)
         return self.rtn(res)
-        
+
+    def get_full_url(self, url):
+        if self.to_json:
+            self.query_components.append("format=json")
+
+        if not self.query_components:
+            ret = url
+        else:
+            ret = "{url}?{query}".format(
+                url=url, query="&".join(self.query_components))
+
+        self.query_components = []
+        return ret
+
+
 class GroupFolders():
-    #/ocs/v2.php/apps/groupfolders/folders
+    #/apps/groupfolders/folders
     def getGroupFolders(self):
-        print(GroupFolders.url+self.tojs)
-        return self.get(GroupFolders.url+self.tojs)
+        return self.get(GroupFolders.url)
+
     def createGroupFolder(self,mountpoint):
-        return self.post(GroupFolders.url+self.tojs,{"mountpoint":mountpoint})
+        return self.post(GroupFolders.url, {"mountpoint":mountpoint})
+
     def deleteGroupFolder(self,fid):
-        return self.delete(GroupFolders.url+"/"+str(fid)+self.tojs)
+        return self.delete(GroupFolders.url+"/"+str(fid))
+
     def giveAccessToGroupFolder(self,fid,gid):
-        return self.post(GroupFolders.url+"/"+fid+"/"+gid+self.tojs)
+        return self.post(GroupFolders.url+"/"+fid+"/"+gid)
+
     def deleteAccessToGroupFolder(self,fid,gid):
-        return self.delete(GroupFolders.url+"/"+fid+"/"+gid+self.tojs)
+        return self.delete(GroupFolders.url+"/"+fid+"/"+gid)
+
     def setAccessToGroupFolder(self,fid,gid,permissions):
-        return self.post(GroupFolders.url+"/"+fid+"/"+gid+self.tojs,{"permissions":permissions})
+        return self.post(GroupFolders.url+"/"+fid+"/"+gid,{"permissions":permissions})
+
     def setQuotaOfGroupFolder(self,fid,quota):
-        return self.post(GroupFolders.url+"/"+fid+"/quota"+self.tojs,{"quota":quota})
+        return self.post(GroupFolders.url+"/"+fid+"/quota",{"quota":quota})
+
     def renameGroupFolder(self,fid,mountpoint):
-        return self.post(GroupFolders.url+"/"+fid+"/mountpoint"+self.tojs,{"mountpoint":mountpoint})        
+        return self.post(GroupFolders.url+"/"+fid+"/mountpoint",{"mountpoint":mountpoint})        
 
 class Share():
     #/ocs/v2.php/apps/files_sharing/api/v1
     def getShares(self):
-        self.get(Share.url + "/shares" + self.tojs)
+        self.get(Share.url + "/shares")
+
     def getSharesFromPath(self,path=None,reshares=None,subfiles=None):
-        if path == None: return False
+        if path == None:
+            return False
         url = Share.url + "/shares/" + path
-        added = False
+
         if reshares != None:
-            if added == False:
-                url += "?"
-                added = True
-            url += "reshares=true"
+            self.query_components.append("reshares=true")
+
         if subfiles != None:
-            if added == False: url += "?"
-            else: url += "&"
-            url += "subfiles=true"
-        return self.get(url+self.tojs)
+            self.query_components.append("subfiles=true")
+
+        return self.get(url)
+
     def getShareInfo(self,sid):
-        self.get(Share.url+"/shares/"+sid+self.tojs)
+        self.get(Share.url+"/shares/"+sid)
+
     def createShare(self,path,shareType,shareWith=None,publicUpload=None,password=None,permissions=None):
-        url = Share.url + "/shares"+self.tojs
+        url = Share.url + "/shares"
         if publicUpload == True: publicUpload = "true"
         if (path == None or isinstance(shareType, int) != True) or (shareType in [0,1] and shareWith == None): return False
         msg = {"path":path,"shareType":shareType}
@@ -71,7 +101,7 @@ class Share():
         if permissions != None: msg["permissions"] = permissions
         return self.post(url,msg)
     def deleteShare(self,sid):
-        return self.delete(Share.url+"/shares/"+sid+self.tojs)
+        return self.delete(Share.url+"/shares/"+sid)
     def updateShare(self,sid,permissions=None,password=None,publicUpload=None,expireDate=None):
         if permissions == None and password==None and publicUpload == None and expireDate == None: return False
         msg = {}
@@ -80,59 +110,53 @@ class Share():
         if publicUpload == True: msg["publicUpload"] = "true"
         if publicUpload == False: msg["publicUpload"] = "false"
         if expireDate != None: msg["expireDate"] = expireDate
-        return self.put(Share.url+"/shares/"+sid+self.tojs,msg)
+        return self.put(Share.url+"/shares/"+sid,msg)
     def listAcceptedFederatedCloudShares(self):
-        return self.get(Share.url+"/remote_shares"+self.tojs)
+        return self.get(Share.url+"/remote_shares")
     def getKnownFederatedCloudShare(self,sid):
-        return self.get(Share.url+"/remote_shares/"+str(sid)+self.tojs)
+        return self.get(Share.url+"/remote_shares/"+str(sid))
     def deleteAcceptedFederatedCloudShare(self,sid):
-        return self.delete(Share.url+"/remote_shares/"+str(sid)+self.tojs)
+        return self.delete(Share.url+"/remote_shares/"+str(sid))
     def listPendingFederatedCloudShares(self,sid):
-        return self.get(Share.url+"/remote_shares/pending"+self.tojs)
+        return self.get(Share.url+"/remote_shares/pending")
     def acceptPendingFederatedCloudShare(self,sid):
-        return self.post(Share.url+"/remote_shares/pending/"+str(sid)+self.tojs)
+        return self.post(Share.url+"/remote_shares/pending/"+str(sid))
     def declinePendingFederatedCloudShare(self,sid):
-        return self.delete(Share.url+"/remote_shares/pending/"+str(sid)+self.tojs)
+        return self.delete(Share.url+"/remote_shares/pending/"+str(sid))
 
 class Apps():
     #/ocs/v1.php/cloud/apps
     def getApps(self,filter=None):
-        if filter == True:  return self.get(Apps.url + "?filter=enabled"+self.tojs)
-        elif filter == False:  return self.get(Apps.url + "?filter=disabled"+self.tojs)
-        return self.get(Apps.url+self.tojs)
+        if filter is True:
+            self.query_components.append("filter=enabled")
+        elif filter is False:
+            self.query_components.append("filter=disabled")
+        return self.get(Apps.url)
     def getApp(self,aid):
-        return self.get(Apps.url + "/" + aid+self.tojs)
+        return self.get(Apps.url + "/" + aid)
     def enableApp(self,aid):
-        return self.post(Apps.url + "/" + aid+self.tojs)
+        return self.post(Apps.url + "/" + aid)
     def disableApp(self,aid):
-        return self.delete(Apps.url + "/" + aid+self.tojs)       
+        return self.delete(Apps.url + "/" + aid)       
         
 class Group():
     #/ocs/v1.php/cloud/groups
     def getGroups(self,search=None,limit=None,offset=None):
         url = Group.url
         if search != None or limit != None or offset != None:
-            url+= "?"
-            added = False
             if search != None:
-                url+="search="+search
-                added = True
+                self.query_components.append("search=%s" % search)
             if limit != None:
-                if added == False: url += "&"
-                url+="limit="+limit
-                added = True
+                self.query_components.append("limit=%s" % limit)
             if offset != None:
-                if added == False: url += "&"
-                url+="offset="+offset
-                added = True
-        url += self.tojs
+                self.query_components.append("offset=%s" % offset)
         return self.get(url)
     def addGroup(self,gid):
-        url = Group.url + self.tojs
+        url = Group.url
         msg = {"groupid":gid}
         return self.post(url,msg)
     def getGroup(self,gid):
-        return self.get(Group.url + "/"+ gid + self.tojs)
+        return self.get(Group.url + "/"+ gid)
     def getSubAdmins(self,gid):
         return self.get(Group.url + "/" + gid + "/subadmins")
     def deleteGroup(self,gid):
@@ -142,29 +166,23 @@ class User():
     #/ocs/v1.php/cloud/users
     def addUser(self,uid,passwd):
         msg = {'userid':uid,'password':passwd}
-        return self.post(User.url + self.tojs,msg)
+        return self.post(User.url, msg)
     def getUsers(self,search=None,limit=None,offset=None):
         url = User.url
         if search != None or limit != None or offset != None:
             url+= "?"
-            added = False
             if search != None:
-                url+="search="+search
-                added = True
+                self.query_components.append("search=%s" % search)
             if limit != None:
-                if added == False: url += "&"
-                url+="limit="+limit
-                added = True
+                self.query_components.append("limit=%s" % limit)
             if offset != None:
-                if added == False: url += "&"
-                url+="offset="+offset
-                added = True
-        url+= self.tojs
+                self.query_components.append("offset=%s" % offset)
         return self.get(url)
+
     def getUser(self,uid):
-        return self.get(User.url + "/" + uid + self.tojs)
+        return self.get(User.url + "/" + uid)
     def editUser(self,uid,email=None,quota=None,displayname=None,phone=None,address=None,website=None,twitter=None,password=None):
-        url = User.url + "/" + uid + self.tojs
+        url = User.url + "/" + uid
         msg = {}
         if email != None:
             msg = {'key':"email",'value':email}
@@ -195,31 +213,31 @@ class User():
         else:
             return False
     def disableUser(self,uid):
-        return self.put(User.url + "/" + uid + "/disable" + self.tojs)
+        return self.put(User.url + "/" + uid + "/disable")
     def enableUser(self,uid):
-        return self.put(User.url + "/" + uid + "/enable" + self.tojs)
+        return self.put(User.url + "/" + uid + "/enable")
     def deleteUser(self,uid):
-        return self.delete(User.url + "/" + uid + self.tojs)
+        return self.delete(User.url + "/" + uid)
     def addToGroup(self,uid,gid):
-        url = User.url + "/" + uid + "/groups" + self.tojs
+        url = User.url + "/" + uid + "/groups"
         msg = {'groupid':gid}
         return self.post(url,msg)
     def removeFromGroup(self,uid,gid):
-        url = User.url + "/" + uid + "/groups" + self.tojs
+        url = User.url + "/" + uid + "/groups"
         msg = {'groupid':gid}
         return self.delete(url,msg)
     def createSubAdmin(self,uid,gid):
-        url = User.url + "/" + uid + "/subadmins" + self.tojs
+        url = User.url + "/" + uid + "/subadmins"
         msg = {'groupid':gid}
         return self.post(url,msg)
     def removeSubAdmin(self,uid,gid):
-        url = User.url + "/" + uid + "/subadmins" + self.tojs
+        url = User.url + "/" + uid + "/subadmins"
         msg = {'groupid':gid}
         return self.delete(url,msg)
     def getSubAdminGroups(self,uid):
-        return self.get(User.url + "/" + uid + "/subadmins" + self.tojs)
+        return self.get(User.url + "/" + uid + "/subadmins")
     def resendWelcomeMail(self,uid):
-        return self.post(User.url + "/" + uid + "/welcome" + self.tojs)
+        return self.post(User.url + "/" + uid + "/welcome")
 
 class NextCloud(Req,User,Group,Apps,Share,GroupFolders):
     '''
@@ -253,14 +271,17 @@ class NextCloud(Req,User,Group,Apps,Share,GroupFolders):
         expireDate -> String e.g "YYYY-MM-DD"
     '''
     def __init__(self,endpoint,user,passwd,js=False):
-        if js == True: self.tojs = "?format=json"
-        else: self.tojs = ""
+        self.query_components = []
+
+        self.to_json = js
+
         self.endpoint = endpoint
         User.url = endpoint + "/ocs/v1.php/cloud/users"
         Group.url = endpoint + "/ocs/v1.php/cloud/groups"
         Share.url = endpoint + "/ocs/v2.php/apps/files_sharing/api/v1"
         Apps.url = endpoint + "/ocs/v1.php/cloud/apps"
-        GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
+        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
+        GroupFolders.url = endpoint + "/apps/groupfolders/folders"
         self.h_get = {"OCS-APIRequest": "true"}
         self.h_post = {"OCS-APIRequest":"true","Content-Type":"application/x-www-form-urlencoded"}
         self.auth_pk = (user, passwd)
