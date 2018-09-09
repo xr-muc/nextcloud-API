@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:9.6-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: next
+    networks:
+      - backend
+
+  app:
+    image: nextcloud:apache
+    environment:
+      POSTGRES_DB: next
+      POSTGRES_USER: next
+      POSTGRES_PASSWORD: example
+      POSTGRES_HOST: db
+
+      NEXTCLOUD_ADMIN_USER: pupica
+      NEXTCLOUD_ADMIN_PASSWORD: pupak
+    ports:
+      - 8080:80
+    networks:
+      - backend
+    volumes:
+      - ./volumes/next:/var/www/html
+    depends_on:
+      - db
+
+networks:
+    backend:

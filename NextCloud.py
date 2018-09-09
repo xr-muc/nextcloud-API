@@ -1,3 +1,5 @@
+import enum
+
 import requests
 
 
@@ -8,12 +10,12 @@ class Req():
         else:
             return resp.content.decode("UTF-8")
 
-    def get(self, ur):
+    def get(self, ur=""):
         ur = self.get_full_url(ur)
         res = requests.get(ur, auth=self.auth_pk, headers=self.h_get)
         return self.rtn(res)
 
-    def post(self, ur, dt=None):
+    def post(self, ur="", dt=None):
         ur = self.get_full_url(ur)
         if dt is None:
             res = requests.post(ur, auth=self.auth_pk, headers=self.h_post)
@@ -22,7 +24,7 @@ class Req():
                                 data=dt, headers=self.h_post)
         return self.rtn(res)
 
-    def put(self, ur, dt=None):
+    def put(self, ur="", dt=None):
         ur = self.get_full_url(ur)
         if dt is None:
             res = requests.put(ur, auth=self.auth_pk, headers=self.h_post)
@@ -31,7 +33,7 @@ class Req():
                                data=dt, headers=self.h_post)
         return self.rtn(res)
 
-    def delete(self, ur, dt=None):
+    def delete(self, ur="", dt=None):
         ur = self.get_full_url(ur)
         if dt is None:
             res = requests.delete(ur, auth=self.auth_pk, headers=self.h_post)
@@ -40,56 +42,76 @@ class Req():
                                   data=dt, headers=self.h_post)
         return self.rtn(res)
 
-    def get_full_url(self, url):
+    def get_full_url(self, additional_url=""):
+        if additional_url and not additional_url.startswith("/"):
+            additional_url = "/" + additional_url
+
         if self.to_json:
             self.query_components.append("format=json")
 
-        if not self.query_components:
-            ret = url
-        else:
+        ret = "{base_url}/{api_url}{additional_url}".format(
+            base_url=self.base_url, api_url=self.API_URL, additional_url=additional_url)
+        if self.query_components:
             ret = "{url}?{query}".format(
-                url=url, query="&".join(self.query_components))
+                url=ret, query="&".join(self.query_components))
 
         self.query_components = []
         return ret
 
 
 class GroupFolders():
-    # /apps/groupfolders/folders
+    API_URL = "/apps/groupfolders/folders"
+
     def getGroupFolders(self):
-        return self.get(GroupFolders.url)
+        return self.get()
 
     def createGroupFolder(self, mountpoint):
-        return self.post(GroupFolders.url, {"mountpoint": mountpoint})
+        return self.post("", {"mountpoint": mountpoint})
 
     def deleteGroupFolder(self, fid):
-        return self.delete(GroupFolders.url+"/"+str(fid))
+        return self.delete(fid)
 
     def giveAccessToGroupFolder(self, fid, gid):
-        return self.post(GroupFolders.url+"/"+fid+"/"+gid)
+        url = "/".join(fid, gid)
+        return self.post(url)
 
     def deleteAccessToGroupFolder(self, fid, gid):
-        return self.delete(GroupFolders.url+"/"+fid+"/"+gid)
+        url = "/".join(fid, gid)
+        return self.delete(url)
 
     def setAccessToGroupFolder(self, fid, gid, permissions):
-        return self.post(GroupFolders.url+"/"+fid+"/"+gid, {"permissions": permissions})
+        url = "/".join(fid, gid)
+        return self.post(url, {"permissions": permissions})
 
     def setQuotaOfGroupFolder(self, fid, quota):
-        return self.post(GroupFolders.url+"/"+fid+"/quota", {"quota": quota})
+        url = "/".join(fid, "quota")
+        return self.post(url, {"quota": quota})
 
     def renameGroupFolder(self, fid, mountpoint):
-        return self.post(GroupFolders.url+"/"+fid+"/mountpoint", {"mountpoint": mountpoint})
+        url = "/".join(fid, "mountpoint")
+        return self.post(url, {"mountpoint": mountpoint})
 
 
 class Share():
-    # /ocs/v2.php/apps/files_sharing/api/v1
-    def getShares(self):
-        self.get(Share.url + "/shares")
+    API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
+    LOCAL = "shares"
+    FEDERATED = "remote_shares"
 
-    def getSharesFromPath(self, path=None, reshares=None, subfiles=None):
-        if path is None:
-            return False
-        url = Share.url + "/shares/" + path
+    def get_local_url(self, additional_url=""):
+        if additional_url:
+            return "/".join(self.LOCAL, additional_url)
+        return self.LOCAL
+
+    def get_federated_url(self, additional_url=""):
+        if additional_url:
+            return "/".join(self.FEDERATED, additional_url)
+        return self.LOCAL
+
+    def getShares(self):
+        self.get(self.get_local_url())
+
+    def getSharesFromPath(self, path, reshares=None, subfiles=None):
+        url = self.get_local_url(path)
 
         if reshares is not None:
             self.query_components.append("reshares=true")
@@ -100,15 +122,15 @@ class Share():
         return self.get(url)
 
     def getShareInfo(self, sid):
-        self.get(Share.url+"/shares/"+sid)
+        self.get(self.get_local_url(sid))
 
     def createShare(
             self, path, shareType, shareWith=None, publicUpload=None, password=None,
             permissions=None):
-        url = Share.url + "/shares"
+        url = self.get_local_url()
         if publicUpload:
             publicUpload = "true"
-        if (path is None or isinstance(shareType, int) != True) or (shareType in [0, 1] and shareWith is None):
+        if (path is None or not isinstance(shareType, int)) or (shareType in [0, 1] and shareWith is None):
             return False
         msg = {"path": path, "shareType": shareType}
         if shareType in [0, 1]:
@@ -122,13 +144,11 @@ class Share():
         return self.post(url, msg)
 
     def deleteShare(self, sid):
-        return self.delete(Share.url+"/shares/"+sid)
+        return self.delete(self.get_local_url(sid))
 
-    def updateShare(self, sid, permissions=None, password=None, publicUpload=None, expireDate=None):
-        if permissions is None and password is None and publicUpload is None and expireDate is None:
-            return False
+    def updateShare(self, sid, permissions=None, password=None, publicUpload=None, expireDate=""):
         msg = {}
-        if permissions is not None:
+        if permissions:
             msg["permissions"] = permissions
         if password is not None:
             msg["password"] = str(password)
@@ -136,52 +156,60 @@ class Share():
             msg["publicUpload"] = "true"
         if publicUpload is False:
             msg["publicUpload"] = "false"
-        if expireDate is not None:
+        if expireDate:
             msg["expireDate"] = expireDate
-        return self.put(Share.url+"/shares/"+sid, msg)
+        url = self.get_local_url(sid)
+        return self.put(url, msg)
 
     def listAcceptedFederatedCloudShares(self):
-        return self.get(Share.url+"/remote_shares")
+        url = self.get_federated_url()
+        return self.get(url)
 
     def getKnownFederatedCloudShare(self, sid):
-        return self.get(Share.url+"/remote_shares/"+str(sid))
+        url = self.get_federated_url(sid)
+        return self.get(url)
 
     def deleteAcceptedFederatedCloudShare(self, sid):
-        return self.delete(Share.url+"/remote_shares/"+str(sid))
+        url = self.get_federated_url(sid)
+        return self.delete(url)
 
     def listPendingFederatedCloudShares(self, sid):
-        return self.get(Share.url+"/remote_shares/pending")
+        url = self.get_federated_url("pending")
+        return self.get(url)
 
     def acceptPendingFederatedCloudShare(self, sid):
-        return self.post(Share.url+"/remote_shares/pending/"+str(sid))
+        url = self.get_federated_url("pending/{sid}".format(sid=sid))
+        return self.post(url)
 
     def declinePendingFederatedCloudShare(self, sid):
-        return self.delete(Share.url+"/remote_shares/pending/"+str(sid))
+        url = self.get_federated_url("pending/{sid}".format(sid=sid))
+        return self.delete(url)
 
 
 class Apps():
-    # /ocs/v1.php/cloud/apps
+    API_URL = "/ocs/v1.php/cloud/apps"
+
     def getApps(self, filter=None):
         if filter is True:
             self.query_components.append("filter=enabled")
         elif filter is False:
             self.query_components.append("filter=disabled")
-        return self.get(Apps.url)
+        return self.get()
 
     def getApp(self, aid):
-        return self.get(Apps.url + "/" + aid)
+        return self.get(aid)
 
     def enableApp(self, aid):
-        return self.post(Apps.url + "/" + aid)
+        return self.post(aid)
 
     def disableApp(self, aid):
-        return self.delete(Apps.url + "/" + aid)
+        return self.delete(aid)
 
 
 class Group():
-    # /ocs/v1.php/cloud/groups
+    API_URL = "/ocs/v1.php/cloud/groups"
+
     def getGroups(self, search=None, limit=None, offset=None):
-        url = Group.url
         if search is not None or limit is not None or offset is not None:
             if search is not None:
                 self.query_components.append("search=%s" % search)
@@ -189,158 +217,138 @@ class Group():
                 self.query_components.append("limit=%s" % limit)
             if offset is not None:
                 self.query_components.append("offset=%s" % offset)
-        return self.get(url)
+        return self.get()
 
     def addGroup(self, gid):
-        url = Group.url
         msg = {"groupid": gid}
-        return self.post(url, msg)
+        return self.post("", msg)
 
     def getGroup(self, gid):
-        return self.get(Group.url + "/" + gid)
+        return self.get("{gid}".format(gid=gid))
 
     def getSubAdmins(self, gid):
-        return self.get(Group.url + "/" + gid + "/subadmins")
+        return self.get("{gid}/subadmins".format(gid=gid))
 
     def deleteGroup(self, gid):
-        return self.delete(Group.url + "/" + gid)
+        return self.delete("{gid}".format(gid=gid))
 
 
 class User():
-    # /ocs/v1.php/cloud/users
+    API_URL = "/ocs/v1.php/cloud/users"
+
     def addUser(self, uid, passwd):
         msg = {'userid': uid, 'password': passwd}
-        return self.post(User.url, msg)
+        return self.post("", msg)
 
     def getUsers(self, search=None, limit=None, offset=None):
-        url = User.url
         if search is not None or limit is not None or offset is not None:
-            url += "?"
             if search is not None:
                 self.query_components.append("search=%s" % search)
             if limit is not None:
                 self.query_components.append("limit=%s" % limit)
             if offset is not None:
                 self.query_components.append("offset=%s" % offset)
-        return self.get(url)
+        return self.get()
 
     def getUser(self, uid):
-        return self.get(User.url + "/" + uid)
+        return self.get("{uid}".format(uid=uid))
 
-    def editUser(
-            self, uid, email=None, quota=None, displayname=None, phone=None, address=None,
-            website=None, twitter=None, password=None):
-        url = User.url + "/" + uid
-        msg = {}
-        if email is not None:
-            msg = {'key': "email", 'value': email}
-            self.put(url, msg)
-        if quota is not None:
-            msg = {'key': "quota", 'value': quota}
-            self.put(url, msg)
-        if phone is not None:
-            msg = {'key': "phone", 'value': phone}
-            self.put(url, msg)
-        if address is not None:
-            msg = {'key': "address", 'value': address}
-            self.put(url, msg)
-        if website is not None:
-            msg = {'key': "website", 'value': website}
-            self.put(url, msg)
-        if twitter is not None:
-            msg = {'key': "twitter", 'value': twitter}
-            self.put(url, msg)
-        if displayname is not None:
-            msg = {'key': "displayname", 'value': displayname}
-            self.put(url, msg)
-        if password is not None:
-            msg = {'key': "password", 'value': password}
-            self.put(url, msg)
-        if msg != {}:
-            return True
-        else:
-            return False
+    def editUser(self, uid, what, value):
+        what_to_key_map = dict(
+            email="email", quota="quote", phone="phone", address="address", website="website",
+            twitter="twitter", displayname="displayname", password="password",
+        )
+        assert what in what_to_key_map, (
+            "You have chosen to edit user's '{what}', but you can choose only from: {choices}"
+            .format(what=what, choices=", ".join(what_to_key_map.keys()))
+        )
+
+        url = "{uid}".format(uid=uid)
+        msg = dict(
+            key=what_to_key_map[what],
+            value=value,
+        )
+        return self.put(url, msg)
 
     def disableUser(self, uid):
-        return self.put(User.url + "/" + uid + "/disable")
+        return self.put("{uid}/disable".format(uid=uid))
 
     def enableUser(self, uid):
-        return self.put(User.url + "/" + uid + "/enable")
+        return self.put("{uid}/enable".format(uid=uid))
 
     def deleteUser(self, uid):
-        return self.delete(User.url + "/" + uid)
+        return self.delete("{uid}".format(uid=uid))
 
     def addToGroup(self, uid, gid):
-        url = User.url + "/" + uid + "/groups"
+        url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
         return self.post(url, msg)
 
     def removeFromGroup(self, uid, gid):
-        url = User.url + "/" + uid + "/groups"
+        url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
         return self.delete(url, msg)
 
     def createSubAdmin(self, uid, gid):
-        url = User.url + "/" + uid + "/subadmins"
+        url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
         return self.post(url, msg)
 
     def removeSubAdmin(self, uid, gid):
-        url = User.url + "/" + uid + "/subadmins"
+        url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
         return self.delete(url, msg)
 
     def getSubAdminGroups(self, uid):
-        return self.get(User.url + "/" + uid + "/subadmins")
+        url = "{uid}/subadmins".format(uid=uid)
+        return self.get(url)
 
     def resendWelcomeMail(self, uid):
-        return self.post(User.url + "/" + uid + "/welcome")
+        url = "{uid}/welcome".format(uid=uid)
+        return self.post(url)
+
+
+class OCSCode(enum.IntEnum):
+    OK = 100
+    SERVER_ERROR = 996
+    NOT_AUTHORIZED = 997
+    NOT_FOUND = 998
+    UNKNOWN_ERROR = 999
+
+
+class ShareType(enum.IntEnum):
+    USER = 0
+    GROUP = 1
+    PUBLIClINK = 3
+    FEDERATED_CLOUD_SHARE = 6
+
+
+class Permission(enum.IntEnum):
+    READ = 1
+    UPDATE = 2
+    CREATE = 4
+    DELETE = 8
+    SHARE = 16
+    ALL = 31
+
+
+QUOTE_UNLIMITED = -3
+
+
+def datttetime_to_expireDate(date):
+    return date.strftime("%Y-%m-%d")
 
 
 class NextCloud(Req, User, Group, Apps, Share, GroupFolders):
-    '''
-    OCS StatusCode
-        100 - successful
-        996 - server error
-        997 - not authorized
-        998 - not found
-        999 - unknown error
-    Parameters
-        uid -> UserID(UserName)
-        gid -> GroupID(GroupName)
-        aid -> AppID(ApplicationName)
-        sid -> ShareID
-        fid -> FolderID
-
-        Quota
-            -3 -> Unlimited
-        ShareType
-            0 -> user
-            1 -> group
-            3 -> publicLink
-            6 -> federated cloud share
-        Permissions
-            1  -> read
-            2  -> update
-            4  -> create
-            8  -> delete
-            16 -> share
-            31 -> all
-        expireDate -> String e.g "YYYY-MM-DD"
-    '''
 
     def __init__(self, endpoint, user, passwd, js=False):
         self.query_components = []
 
         self.to_json = js
 
-        self.endpoint = endpoint
-        User.url = endpoint + "/ocs/v1.php/cloud/users"
-        Group.url = endpoint + "/ocs/v1.php/cloud/groups"
-        Share.url = endpoint + "/ocs/v2.php/apps/files_sharing/api/v1"
-        Apps.url = endpoint + "/ocs/v1.php/cloud/apps"
+        self.base_url = endpoint
         # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
-        GroupFolders.url = endpoint + "/apps/groupfolders/folders"
+
         self.h_get = {"OCS-APIRequest": "true"}
         self.h_post = {"OCS-APIRequest": "true",
                        "Content-Type": "application/x-www-form-urlencoded"}
