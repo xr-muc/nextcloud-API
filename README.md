@@ -1,8 +1,6 @@
 # OCS-API-for-Py
-NextCloud OCS API for Python
-Tested at Python 3.4 / NextCloud 12.0.3
-
-Welcome to my shitty code > <
+NextCloud OCS API for Python based on the [NEXT-OCS-API-forPy](https://github.com/Dosugamea/NEXT-OCS-API-forPy) project by "[Rabbit Horse](https://dosugamea.github.io/)".
+Tested at Python 3.7 / NextCloud 14.0
 
 ## Which API does it support?
 - `User Provisioning API`: https://docs.nextcloud.com/server/12/admin_manual/configuration_user/user_provisioning_api.html
@@ -10,10 +8,8 @@ Welcome to my shitty code > <
 - `GroupFolders`: https://github.com/nextcloud/groupfolders
 
 ## How to use?
-Let's try to see example.py and see NextCloud.py.
+Let's try to see `example.py` and see `NextCloud.py`.
 Not so difficult code.
 
-## It doesn't works
-Please fix by your own.
-Then, please do pull request, if you have a time.
-May be pull soon.
+## It doesn't work
+Open a GitHub issue.
