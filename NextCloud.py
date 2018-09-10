@@ -3,7 +3,24 @@ import enum
 import requests
 
 
+PUBLIC_API_NAME_CLASS_MAP = dict()
+
+
 class Req():
+    def __init__(self, endpoint, user, passwd, js=False):
+        self.query_components = []
+
+        self.to_json = js
+
+        self.base_url = endpoint
+        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
+
+        self.h_get = {"OCS-APIRequest": "true"}
+        self.h_post = {"OCS-APIRequest": "true",
+                       "Content-Type": "application/x-www-form-urlencoded"}
+        self.auth_pk = (user, passwd)
+        self.API_URL = None
+
     def rtn(self, resp):
         if self.to_json:
             return resp.json()
@@ -59,40 +76,89 @@ class Req():
         return ret
 
 
-class GroupFolders():
+def nextcloud_method(method_to_wrap):
+    class_name = method_to_wrap.__qualname__.split(".", 1)[0]
+    PUBLIC_API_NAME_CLASS_MAP[method_to_wrap.__name__] = class_name
+    return method_to_wrap
+
+
+class NextCloud(object):
+
+    def __init__(self, endpoint, user, passwd, js=False):
+        self.query_components = []
+
+        requester = Req(endpoint, user, passwd, js)
+
+        self.functionality = {
+            "Apps": Apps(requester),
+            "Group": Group(requester),
+            "GroupFolders": GroupFolders(requester),
+            "Share": Share(requester),
+            "User": User(requester),
+        }
+
+        for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
+            setattr(self, name, getattr(self.functionality[location], name))
+
+        self.to_json = js
+
+        self.base_url = endpoint
+        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
+
+        self.h_get = {"OCS-APIRequest": "true"}
+        self.h_post = {"OCS-APIRequest": "true",
+                       "Content-Type": "application/x-www-form-urlencoded"}
+        self.auth_pk = (user, passwd)
+
+
+class WithRequester(object):
+    def __init__(self, requester):
+        self.requester = requester
+        self.requester.API_URL = self.API_URL
+
+
+class GroupFolders(WithRequester):
     API_URL = "/apps/groupfolders/folders"
 
+    @nextcloud_method
     def getGroupFolders(self):
-        return self.get()
+        return self.requester.get()
 
+    @nextcloud_method
     def createGroupFolder(self, mountpoint):
-        return self.post("", {"mountpoint": mountpoint})
+        return self.requester.post("", {"mountpoint": mountpoint})
 
+    @nextcloud_method
     def deleteGroupFolder(self, fid):
-        return self.delete(fid)
+        return self.requester.delete(fid)
 
+    @nextcloud_method
     def giveAccessToGroupFolder(self, fid, gid):
         url = "/".join(fid, gid)
-        return self.post(url)
+        return self.requester.post(url)
 
+    @nextcloud_method
     def deleteAccessToGroupFolder(self, fid, gid):
         url = "/".join(fid, gid)
-        return self.delete(url)
+        return self.requester.delete(url)
 
+    @nextcloud_method
     def setAccessToGroupFolder(self, fid, gid, permissions):
         url = "/".join(fid, gid)
-        return self.post(url, {"permissions": permissions})
+        return self.requester.post(url, {"permissions": permissions})
 
+    @nextcloud_method
     def setQuotaOfGroupFolder(self, fid, quota):
         url = "/".join(fid, "quota")
-        return self.post(url, {"quota": quota})
+        return self.requester.post(url, {"quota": quota})
 
+    @nextcloud_method
     def renameGroupFolder(self, fid, mountpoint):
         url = "/".join(fid, "mountpoint")
-        return self.post(url, {"mountpoint": mountpoint})
+        return self.requester.post(url, {"mountpoint": mountpoint})
 
 
-class Share():
+class Share(WithRequester):
     API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
     LOCAL = "shares"
     FEDERATED = "remote_shares"
@@ -107,11 +173,13 @@ class Share():
             return "/".join(self.FEDERATED, additional_url)
         return self.LOCAL
 
+    @nextcloud_method
     def getShares(self):
-        self.get(self.get_local_url())
+        self.requester.get(self.requester.get_local_url())
 
+    @nextcloud_method
     def getSharesFromPath(self, path, reshares=None, subfiles=None):
-        url = self.get_local_url(path)
+        url = self.requester.get_local_url(path)
 
         if reshares is not None:
             self.query_components.append("reshares=true")
@@ -119,15 +187,17 @@ class Share():
         if subfiles is not None:
             self.query_components.append("subfiles=true")
 
-        return self.get(url)
+        return self.requester.get(url)
 
+    @nextcloud_method
     def getShareInfo(self, sid):
-        self.get(self.get_local_url(sid))
+        self.requester.get(self.requester.get_local_url(sid))
 
+    @nextcloud_method
     def createShare(
-            self, path, shareType, shareWith=None, publicUpload=None, password=None,
-            permissions=None):
-        url = self.get_local_url()
+            self, path, shareType, shareWith=None, publicUpload=None,
+            password=None, permissions=None):
+        url = self.requester.get_local_url()
         if publicUpload:
             publicUpload = "true"
         if (path is None or not isinstance(shareType, int)) or (shareType in [0, 1] and shareWith is None):
@@ -141,11 +211,13 @@ class Share():
             msg["password"] = str(password)
         if permissions is not None:
             msg["permissions"] = permissions
-        return self.post(url, msg)
+        return self.requester.post(url, msg)
 
+    @nextcloud_method
     def deleteShare(self, sid):
-        return self.delete(self.get_local_url(sid))
+        return self.requester.delete(self.requester.get_local_url(sid))
 
+    @nextcloud_method
     def updateShare(self, sid, permissions=None, password=None, publicUpload=None, expireDate=""):
         msg = {}
         if permissions:
@@ -158,57 +230,68 @@ class Share():
             msg["publicUpload"] = "false"
         if expireDate:
             msg["expireDate"] = expireDate
-        url = self.get_local_url(sid)
-        return self.put(url, msg)
+        url = self.requester.get_local_url(sid)
+        return self.requester.put(url, msg)
 
+    @nextcloud_method
     def listAcceptedFederatedCloudShares(self):
-        url = self.get_federated_url()
-        return self.get(url)
+        url = self.requester.get_federated_url()
+        return self.requester.get(url)
 
+    @nextcloud_method
     def getKnownFederatedCloudShare(self, sid):
-        url = self.get_federated_url(sid)
-        return self.get(url)
+        url = self.requester.get_federated_url(sid)
+        return self.requester.get(url)
 
+    @nextcloud_method
     def deleteAcceptedFederatedCloudShare(self, sid):
-        url = self.get_federated_url(sid)
-        return self.delete(url)
+        url = self.requester.get_federated_url(sid)
+        return self.requester.delete(url)
 
+    @nextcloud_method
     def listPendingFederatedCloudShares(self, sid):
-        url = self.get_federated_url("pending")
-        return self.get(url)
+        url = self.requester.get_federated_url("pending")
+        return self.requester.get(url)
 
+    @nextcloud_method
     def acceptPendingFederatedCloudShare(self, sid):
-        url = self.get_federated_url("pending/{sid}".format(sid=sid))
-        return self.post(url)
+        url = self.requester.get_federated_url("pending/{sid}".format(sid=sid))
+        return self.requester.post(url)
 
+    @nextcloud_method
     def declinePendingFederatedCloudShare(self, sid):
-        url = self.get_federated_url("pending/{sid}".format(sid=sid))
-        return self.delete(url)
+        url = self.requester.get_federated_url("pending/{sid}".format(sid=sid))
+        return self.requester.delete(url)
 
 
-class Apps():
+class Apps(WithRequester):
     API_URL = "/ocs/v1.php/cloud/apps"
 
+    @nextcloud_method
     def getApps(self, filter=None):
         if filter is True:
             self.query_components.append("filter=enabled")
         elif filter is False:
             self.query_components.append("filter=disabled")
-        return self.get()
+        return self.requester.get()
 
+    @nextcloud_method
     def getApp(self, aid):
-        return self.get(aid)
+        return self.requester.get(aid)
 
+    @nextcloud_method
     def enableApp(self, aid):
-        return self.post(aid)
+        return self.requester.post(aid)
 
+    @nextcloud_method
     def disableApp(self, aid):
-        return self.delete(aid)
+        return self.requester.delete(aid)
 
 
-class Group():
+class Group(WithRequester):
     API_URL = "/ocs/v1.php/cloud/groups"
 
+    @nextcloud_method
     def getGroups(self, search=None, limit=None, offset=None):
         if search is not None or limit is not None or offset is not None:
             if search is not None:
@@ -217,29 +300,35 @@ class Group():
                 self.query_components.append("limit=%s" % limit)
             if offset is not None:
                 self.query_components.append("offset=%s" % offset)
-        return self.get()
+        return self.requester.get()
 
+    @nextcloud_method
     def addGroup(self, gid):
         msg = {"groupid": gid}
-        return self.post("", msg)
+        return self.requester.post("", msg)
 
+    @nextcloud_method
     def getGroup(self, gid):
-        return self.get("{gid}".format(gid=gid))
+        return self.requester.get("{gid}".format(gid=gid))
 
+    @nextcloud_method
     def getSubAdmins(self, gid):
-        return self.get("{gid}/subadmins".format(gid=gid))
+        return self.requester.get("{gid}/subadmins".format(gid=gid))
 
+    @nextcloud_method
     def deleteGroup(self, gid):
-        return self.delete("{gid}".format(gid=gid))
+        return self.requester.delete("{gid}".format(gid=gid))
 
 
-class User():
+class User(WithRequester):
     API_URL = "/ocs/v1.php/cloud/users"
 
+    @nextcloud_method
     def addUser(self, uid, passwd):
         msg = {'userid': uid, 'password': passwd}
-        return self.post("", msg)
+        return self.requester.post("", msg)
 
+    @nextcloud_method
     def getUsers(self, search=None, limit=None, offset=None):
         if search is not None or limit is not None or offset is not None:
             if search is not None:
@@ -248,11 +337,13 @@ class User():
                 self.query_components.append("limit=%s" % limit)
             if offset is not None:
                 self.query_components.append("offset=%s" % offset)
-        return self.get()
+        return self.requester.get()
 
+    @nextcloud_method
     def getUser(self, uid):
-        return self.get("{uid}".format(uid=uid))
+        return self.requester.get("{uid}".format(uid=uid))
 
+    @nextcloud_method
     def editUser(self, uid, what, value):
         what_to_key_map = dict(
             email="email", quota="quote", phone="phone", address="address", website="website",
@@ -268,44 +359,53 @@ class User():
             key=what_to_key_map[what],
             value=value,
         )
-        return self.put(url, msg)
+        return self.requester.put(url, msg)
 
+    @nextcloud_method
     def disableUser(self, uid):
-        return self.put("{uid}/disable".format(uid=uid))
+        return self.requester.put("{uid}/disable".format(uid=uid))
 
+    @nextcloud_method
     def enableUser(self, uid):
-        return self.put("{uid}/enable".format(uid=uid))
+        return self.requester.put("{uid}/enable".format(uid=uid))
 
+    @nextcloud_method
     def deleteUser(self, uid):
-        return self.delete("{uid}".format(uid=uid))
+        return self.requester.delete("{uid}".format(uid=uid))
 
+    @nextcloud_method
     def addToGroup(self, uid, gid):
         url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
-        return self.post(url, msg)
+        return self.requester.post(url, msg)
 
+    @nextcloud_method
     def removeFromGroup(self, uid, gid):
         url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
-        return self.delete(url, msg)
+        return self.requester.delete(url, msg)
 
+    @nextcloud_method
     def createSubAdmin(self, uid, gid):
         url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
-        return self.post(url, msg)
+        return self.requester.post(url, msg)
 
+    @nextcloud_method
     def removeSubAdmin(self, uid, gid):
         url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
-        return self.delete(url, msg)
+        return self.requester.delete(url, msg)
 
+    @nextcloud_method
     def getSubAdminGroups(self, uid):
         url = "{uid}/subadmins".format(uid=uid)
-        return self.get(url)
+        return self.requester.get(url)
 
+    @nextcloud_method
     def resendWelcomeMail(self, uid):
         url = "{uid}/welcome".format(uid=uid)
-        return self.post(url)
+        return self.requester.post(url)
 
 
 class OCSCode(enum.IntEnum):
@@ -337,19 +437,3 @@ QUOTE_UNLIMITED = -3
 
 def datttetime_to_expireDate(date):
     return date.strftime("%Y-%m-%d")
-
-
-class NextCloud(Req, User, Group, Apps, Share, GroupFolders):
-
-    def __init__(self, endpoint, user, passwd, js=False):
-        self.query_components = []
-
-        self.to_json = js
-
-        self.base_url = endpoint
-        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
-
-        self.h_get = {"OCS-APIRequest": "true"}
-        self.h_post = {"OCS-APIRequest": "true",
-                       "Content-Type": "application/x-www-form-urlencoded"}
-        self.auth_pk = (user, passwd)
