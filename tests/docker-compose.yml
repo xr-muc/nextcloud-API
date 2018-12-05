@@ -3,30 +3,51 @@ version: '3'
 services:
   db:
     image: postgres:9.6-alpine
-    environment:
-      POSTGRES_PASSWORD: example
-      POSTGRES_USER: next
-    networks:
-      - backend
-
-  app:
-    image: nextcloud:apache
-    environment:
-      POSTGRES_DB: next
-      POSTGRES_USER: next
-      POSTGRES_PASSWORD: example
-      POSTGRES_HOST: db
-
-      NEXTCLOUD_ADMIN_USER: pupica
-      NEXTCLOUD_ADMIN_PASSWORD: pupak
-    ports:
-      - 8080:80
+    restart: always
     networks:
       - backend
     volumes:
-      - ./volumes/next:/var/www/html
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+
+  app:
+    image: nextcloud:apache
+    restart: always
+    networks:
+      - backend
+    ports:
+      - 8080:80
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      POSTGRES_DB: 'nextcloud'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'secret'
+      POSTGRES_HOST: 'db'
+
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: admin
     depends_on:
       - db
+
+  python-api:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    environment:
+      NEXTCLOUD_HOST: app
+      NEXTCLOUD_USERNAME: "admin"
+      NEXTCLOUD_PASSWORD: "admin"
+    links:
+      - app
+
+volumes:
+  db:
+  nextcloud:
 
 networks:
     backend:
