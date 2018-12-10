@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from NextCloud import NextCloud
 
-NEXTCLOUD_URL = "http://{}".format(os.environ['NEXTCLOUD_HOST'])
+NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOST'])
 NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_USERNAME')
 NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_PASSWORD')
 
