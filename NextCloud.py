@@ -27,39 +27,36 @@ class Requester(object):
         else:
             return resp.content.decode("UTF-8")
 
-    def get(self, url=""):
+    def get(self, url="", params=None):
         url = self.get_full_url(url)
-        res = requests.get(url, auth=self.auth_pk, headers=self.h_get)
+        res = requests.get(url, auth=self.auth_pk, headers=self.h_get, params=params)
         return self.rtn(res)
 
-    def post(self, ur="", dt=None):
-        ur = self.get_full_url(ur)
-        if dt is None:
-            res = requests.post(ur, auth=self.auth_pk, headers=self.h_post)
-        else:
-            res = requests.post(ur, auth=self.auth_pk,
-                                data=dt, headers=self.h_post)
+    def post(self, url="", data=None):
+        url = self.get_full_url(url)
+        res = requests.post(url, auth=self.auth_pk, data=data, headers=self.h_post)
         return self.rtn(res)
 
-    def put(self, ur="", dt=None):
-        ur = self.get_full_url(ur)
-        if dt is None:
-            res = requests.put(ur, auth=self.auth_pk, headers=self.h_post)
-        else:
-            res = requests.put(ur, auth=self.auth_pk,
-                               data=dt, headers=self.h_post)
+    def put(self, url="", data=None):
+        url = self.get_full_url(url)
+        res = requests.put(url, auth=self.auth_pk, data=data, headers=self.h_post)
         return self.rtn(res)
 
-    def delete(self, ur="", dt=None):
-        ur = self.get_full_url(ur)
-        if dt is None:
-            res = requests.delete(ur, auth=self.auth_pk, headers=self.h_post)
-        else:
-            res = requests.delete(ur, auth=self.auth_pk,
-                                  data=dt, headers=self.h_post)
+    def delete(self, url="", data=None):
+        url = self.get_full_url(url)
+        res = requests.delete(url, auth=self.auth_pk, data=data, headers=self.h_post)
         return self.rtn(res)
 
     def get_full_url(self, additional_url=""):
+        """
+        Build full url for request to NextCloud api
+
+        Construct url from self.base_url, self.API_URL, additional_url (if given), add format=json param if self.json
+
+        :param additional_url: str
+            add to url after api_url
+        :return: str
+        """
         if additional_url and not additional_url.startswith("/"):
             additional_url = "/" + additional_url
 
@@ -68,11 +65,9 @@ class Requester(object):
 
         ret = "{base_url}/{api_url}{additional_url}".format(
             base_url=self.base_url, api_url=self.API_URL, additional_url=additional_url)
-        if self.query_components:
-            ret = "{url}?{query}".format(
-                url=ret, query="&".join(self.query_components))
 
-        self.query_components = []
+        if self.to_json:
+            ret += "?format=json"
         return ret
 
 
@@ -327,22 +322,41 @@ class User(WithRequester):
 
     @nextcloud_method
     def add_user(self, uid, passwd):
+        """
+        Create a new user on the Nextcloud server
+
+        :param uid: str, uid of new user
+        :param passwd: str, password of new user
+        :return:
+        """
         msg = {'userid': uid, 'password': passwd}
         return self.requester.post("", msg)
 
     @nextcloud_method
     def get_users(self, search=None, limit=None, offset=None):
-        if search is not None or limit is not None or offset is not None:
-            if search is not None:
-                self.query_components.append("search=%s" % search)
-            if limit is not None:
-                self.query_components.append("limit=%s" % limit)
-            if offset is not None:
-                self.query_components.append("offset=%s" % offset)
-        return self.requester.get()
+        """
+        Retrieve a list of users from the Nextcloud server
+
+        :param search: string, optional search string
+        :param limit: int, optional limit value
+        :param offset: int, optional offset value
+        :return:
+        """
+        params = {
+            'search': search,
+            'limit': limit,
+            'offset': offset
+        }
+        return self.requester.get(params=params)
 
     @nextcloud_method
     def get_user(self, uid):
+        """
+        Retrieve information about a single user
+
+        :param uid: str, uid of user
+        :return:
+        """
         return self.requester.get("{uid}".format(uid=uid))
 
     @nextcloud_method
@@ -365,14 +379,32 @@ class User(WithRequester):
 
     @nextcloud_method
     def disable_user(self, uid):
+        """
+        Disable a user on the Nextcloud server so that the user cannot login anymore
+
+        :param uid: str, uid of user
+        :return:
+        """
         return self.requester.put("{uid}/disable".format(uid=uid))
 
     @nextcloud_method
     def enable_user(self, uid):
+        """
+        Enable a user on the Nextcloud server so that the user can login again
+
+        :param uid: str, uid of user
+        :return:
+        """
         return self.requester.put("{uid}/enable".format(uid=uid))
 
     @nextcloud_method
     def delete_user(self, uid):
+        """
+        Delete a user from the Nextcloud server
+
+        :param uid: str, uid of user
+        :return:
+        """
         return self.requester.delete("{uid}".format(uid=uid))
 
     @nextcloud_method
