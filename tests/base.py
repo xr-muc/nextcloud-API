@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from unittest import TestCase
 
 from NextCloud import NextCloud
@@ -19,3 +21,7 @@ class BaseTestCase(TestCase):
     def setUp(self):
         self.username = NEXTCLOUD_USERNAME
         self.nxc = NextCloud(NEXTCLOUD_URL, NEXTCLOUD_USERNAME, NEXTCLOUD_PASSWORD, js=True)
+
+    def get_random_string(self, length=6):
+        """ Helper method to get random string with set length  """
+        return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))

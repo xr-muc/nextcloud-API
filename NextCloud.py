@@ -91,25 +91,23 @@ class NextCloud(object):
             "Share": Share(requester),
             "User": User(requester),
         }
-
         for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
             setattr(self, name, getattr(self.functionality[location], name))
 
-        self.to_json = js
-
-        self.base_url = endpoint
-        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
-
-        self.h_get = {"OCS-APIRequest": "true"}
-        self.h_post = {"OCS-APIRequest": "true",
-                       "Content-Type": "application/x-www-form-urlencoded"}
-        self.auth_pk = (user, passwd)
-
 
 class WithRequester(object):
+
+    API_URL = NotImplementedError
+
     def __init__(self, requester):
-        self.requester = requester
-        self.requester.API_URL = self.API_URL
+        self._requester = requester
+
+    @property
+    def requester(self):
+        """ Get requester instance """
+        # dynamically set API_URL for requester
+        self._requester.API_URL = self.API_URL
+        return self._requester
 
 
 class GroupFolders(WithRequester):
@@ -290,26 +288,50 @@ class Group(WithRequester):
 
     @nextcloud_method
     def get_groups(self, search=None, limit=None, offset=None):
-        if search is not None or limit is not None or offset is not None:
-            if search is not None:
-                self.query_components.append("search=%s" % search)
-            if limit is not None:
-                self.query_components.append("limit=%s" % limit)
-            if offset is not None:
-                self.query_components.append("offset=%s" % offset)
-        return self.requester.get()
+        """
+        Retrieve a list of groups from the Nextcloud server
+
+        :param search: string, optional search string
+        :param limit: int, optional limit value
+        :param offset: int, optional offset value
+        :return:
+        """
+        params = {
+            'search': search,
+            'limit': limit,
+            'offset': offset
+        }
+        return self.requester.get(params=params)
 
     @nextcloud_method
     def add_group(self, gid):
+        """
+        Add a new group
+
+        :param gid: str, group name
+        :return:
+        """
         msg = {"groupid": gid}
         return self.requester.post("", msg)
 
     @nextcloud_method
     def get_group(self, gid):
+        """
+        Retrieve a list of group members
+
+        :param gid: str, group name
+        :return:
+        """
         return self.requester.get("{gid}".format(gid=gid))
 
     @nextcloud_method
     def get_subadmins(self, gid):
+        """
+        List subadmins of the group
+
+        :param gid: str, group name
+        :return:
+        """
         return self.requester.get("{gid}/subadmins".format(gid=gid))
 
     @nextcloud_method
@@ -361,6 +383,16 @@ class User(WithRequester):
 
     @nextcloud_method
     def edit_user(self, uid, what, value):
+        """
+        Edit attributes related to a user
+
+        Users are able to edit email, displayname and password; admins can also edit the quota value
+
+        :param uid: str, uid of user
+        :param what: str, the field to edit
+        :param value: str, the new value for the field
+        :return:
+        """
         what_to_key_map = dict(
             email="email", quota="quote", phone="phone", address="address", website="website",
             twitter="twitter", displayname="displayname", password="password",
@@ -438,6 +470,12 @@ class User(WithRequester):
 
     @nextcloud_method
     def resend_welcome_mail(self, uid):
+        """
+        Trigger the welcome email for this user again
+
+        :param uid: str, uid of user
+        :return:
+        """
         url = "{uid}/welcome".format(uid=uid)
         return self.requester.post(url)
 

@@ -1,13 +1,19 @@
-import random
-import string
-
 from .base import BaseTestCase
 
 
 class TestUsers(BaseTestCase):
 
-    def _get_random_string(self, length=6):
-        return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+    def create_new_user(self, username_prefix):
+        """ Helper method to create new user """
+        new_user_username = username_prefix + self.get_random_string(length=4)
+        res = self.nxc.add_user(new_user_username, self.get_random_string(length=8))
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        return new_user_username
+
+    def delete_user(self, username):
+        """ Helper method to delete user by username """
+        res = self.nxc.delete_user(username)
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
 
     def test_get_users(self):
         res = self.nxc.get_users()
@@ -29,8 +35,8 @@ class TestUsers(BaseTestCase):
         assert user['enabled']
 
     def test_add_user(self):
-        new_user_username = self._get_random_string(length=4) + "test_add"
-        res = self.nxc.add_user(new_user_username, self._get_random_string(length=8))
+        new_user_username = self.get_random_string(length=4) + "test_add"
+        res = self.nxc.add_user(new_user_username, self.get_random_string(length=8))
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
         added_user = self.nxc.get_user(new_user_username)['ocs']['data']
         assert added_user['id'] == new_user_username and added_user['enabled']
@@ -39,8 +45,8 @@ class TestUsers(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.USERNAME_ALREADY_EXISTS_CODE
 
     def test_disable_enable_user(self):
-        new_user_username = self._get_random_string(length=4) + "test_enable"
-        self.nxc.add_user(new_user_username, self._get_random_string(length=8))
+        new_user_username = self.get_random_string(length=4) + "test_enable"
+        self.nxc.add_user(new_user_username, self.get_random_string(length=8))
         user = self.nxc.get_user(new_user_username)['ocs']['data']
         assert user['enabled']
         self.nxc.disable_user(new_user_username)
@@ -51,13 +57,31 @@ class TestUsers(BaseTestCase):
         assert user['enabled']
 
     def test_delete_user(self):
-        new_user_username = self._get_random_string(length=4) + "test_enable"
-        self.nxc.add_user(new_user_username, self._get_random_string(length=8))
+        new_user_username = self.get_random_string(length=4) + "test_enable"
+        self.nxc.add_user(new_user_username, self.get_random_string(length=8))
         res = self.nxc.delete_user(new_user_username)
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
         user_res = self.nxc.get_user(new_user_username)
         assert user_res['ocs']['meta']['statuscode'] == self.NOT_FOUND_CODE
 
+    def test_edit_user(self):
+        new_user_username = self.create_new_user("edit_user")
+        new_user_values = {
+            "email": "test@test.test",
+            # "quota": "100MB", FIXME: only admins (of a group?) can edit quota
+            "phone": "+380999999999",
+            "address": "World!",
+            "website": "example.com",
+            "twitter": "@twitter_account",
+            "displayname": "test user!",
+            "password": self.get_random_string(length=10)
+        }
+        for key, value in new_user_values.items():
+            res = self.nxc.edit_user(new_user_username, key, value)
+            assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
 
+    def test_resend_welcome_mail(self):
+        # TODO: add mock of SMTP data to test this method
+        pass
 
 
