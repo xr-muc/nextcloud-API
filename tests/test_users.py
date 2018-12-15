@@ -3,18 +3,6 @@ from .base import BaseTestCase
 
 class TestUsers(BaseTestCase):
 
-    def create_new_user(self, username_prefix):
-        """ Helper method to create new user """
-        new_user_username = username_prefix + self.get_random_string(length=4)
-        res = self.nxc.add_user(new_user_username, self.get_random_string(length=8))
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-        return new_user_username
-
-    def delete_user(self, username):
-        """ Helper method to delete user by username """
-        res = self.nxc.delete_user(username)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-
     def test_get_users(self):
         res = self.nxc.get_users()
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
@@ -85,3 +73,41 @@ class TestUsers(BaseTestCase):
         pass
 
 
+class TestUserGroups(BaseTestCase):
+
+    def setUp(self):
+        super(TestUserGroups, self).setUp()
+        self.user_username = self.create_new_user('user_group_')
+        # create group
+        self.group_name = self.get_random_string(length=4) + "_user_groups"
+        self.nxc.add_group(self.group_name)
+
+    def tearDown(self):
+        self.delete_user(self.user_username)
+        self.nxc.delete_group(self.group_name)
+
+    def test_add_remove_user_from_group(self):
+        # add to group
+        res = self.nxc.add_to_group(self.user_username, self.group_name)
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        group_members = self.nxc.get_group(self.group_name)['ocs']['data']['users']
+        assert self.user_username in group_members
+        # remove from group
+        res = self.nxc.remove_from_group(self.user_username, self.group_name)
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        group_members = self.nxc.get_group(self.group_name)['ocs']['data']['users']
+        assert self.user_username not in group_members
+
+    def test_create_retrieve_delete_subadmin(self):
+        # promote to subadmin
+        res = self.nxc.create_subadmin(self.user_username, self.group_name)
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        # get subadmin groups
+        subadmin_groups = self.nxc.get_subadmin_groups(self.user_username)
+        assert subadmin_groups['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert self.group_name in subadmin_groups['ocs']['data']
+        # demote from subadmin
+        res = self.nxc.remove_subadmin(self.user_username, self.group_name)
+        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        subadmin_groups = self.nxc.get_subadmin_groups(self.user_username)['ocs']['data']
+        assert self.group_name not in subadmin_groups

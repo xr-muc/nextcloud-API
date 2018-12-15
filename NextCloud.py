@@ -336,6 +336,12 @@ class Group(WithRequester):
 
     @nextcloud_method
     def delete_group(self, gid):
+        """
+        Remove a group
+
+        :param gid: str, group name
+        :return:
+        """
         return self.requester.delete("{gid}".format(gid=gid))
 
 
@@ -441,30 +447,64 @@ class User(WithRequester):
 
     @nextcloud_method
     def add_to_group(self, uid, gid):
+        """
+        Add the specified user to the specified group
+
+        :param uid: str, uid of user
+        :param gid: str, name of group
+        :return:
+        """
         url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
         return self.requester.post(url, msg)
 
     @nextcloud_method
     def remove_from_group(self, uid, gid):
+        """
+        Remove the specified user from the specified group
+
+        :param uid: str, uid of user
+        :param gid: str, name of group
+        :return:
+        """
         url = "{uid}/groups".format(uid=uid)
         msg = {'groupid': gid}
         return self.requester.delete(url, msg)
 
     @nextcloud_method
     def create_subadmin(self, uid, gid):
+        """
+        Make a user the subadmin of a group
+
+        :param uid: str, uid of user
+        :param gid: str, name of group
+        :return:
+        """
         url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
         return self.requester.post(url, msg)
 
     @nextcloud_method
     def remove_subadmin(self, uid, gid):
+        """
+        Remove the subadmin rights for the user specified from the group specified
+
+        :param uid: str, uid of user
+        :param gid: str, name of group
+        :return:
+        """
         url = "{uid}/subadmins".format(uid=uid)
         msg = {'groupid': gid}
         return self.requester.delete(url, msg)
 
     @nextcloud_method
     def get_subadmin_groups(self, uid):
+        """
+        Get the groups in which the user is a subadmin
+
+        :param uid: str, uid of user
+        :return:
+        """
         url = "{uid}/subadmins".format(uid=uid)
         return self.requester.get(url)
 
