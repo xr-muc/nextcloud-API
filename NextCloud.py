@@ -264,23 +264,46 @@ class Apps(WithRequester):
 
     @nextcloud_method
     def get_apps(self, filter=None):
-        if filter is True:
-            self.query_components.append("filter=enabled")
-        elif filter is False:
-            self.query_components.append("filter=disabled")
-        return self.requester.get()
+        """
+        Get a list of apps installed on the Nextcloud server
+
+        :param filter: str, optional "enabled" or "disabled"
+        :return:
+        """
+        params = {
+            "filter": filter
+        }
+        return self.requester.get(params=params)
 
     @nextcloud_method
-    def get_app(self, aid):
-        return self.requester.get(aid)
+    def get_app(self, app_id):
+        """
+        Provide information on a specific application
+
+        :param app_id: str, app id
+        :return:
+        """
+        return self.requester.get(app_id)
 
     @nextcloud_method
-    def enable_app(self, aid):
-        return self.requester.post(aid)
+    def enable_app(self, app_id):
+        """
+        Enable an app
+
+        :param app_id: str, app id
+        :return:
+        """
+        return self.requester.post(app_id)
 
     @nextcloud_method
-    def disable_app(self, aid):
-        return self.requester.delete(aid)
+    def disable_app(self, app_id):
+        """
+        Disable the specified app
+
+        :param app_id: str, app id
+        :return:
+        """
+        return self.requester.delete(app_id)
 
 
 class Group(WithRequester):
