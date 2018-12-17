@@ -47,6 +47,8 @@ services:
       backend:
         aliases:
           - python-api
+    volumes:
+      - ../:/usr/src/app
 
 volumes:
   db:

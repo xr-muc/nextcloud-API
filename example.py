@@ -9,5 +9,5 @@ passwd = "INPUT_YOUR_PASSWORD"
 #False if you want to get response as XML
 tojs = True
 
-nxc = NextCloud.NextCloud(url,userid,passwd,tojs)
-print(nxc.getUsers())
+nxc = NextCloud.NextCloud(url, userid, passwd, tojs)
+print(nxc.get_users())
