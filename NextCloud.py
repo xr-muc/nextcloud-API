@@ -88,6 +88,7 @@ class NextCloud(object):
             "GroupFolders": GroupFolders(requester),
             "Share": Share(requester),
             "User": User(requester),
+            "FederatedCloudShare": FederatedCloudShare(requester)
         }
         for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
             setattr(self, name, getattr(self.functionality[location], name))
@@ -153,17 +154,11 @@ class GroupFolders(WithRequester):
 class Share(WithRequester):
     API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
     LOCAL = "shares"
-    FEDERATED = "remote_shares"
 
     def get_local_url(self, additional_url=""):
         if additional_url:
             return "/".join([self.LOCAL, additional_url])
         return self.LOCAL
-
-    def get_federated_url(self, additional_url=""):
-        if additional_url:
-            return "/".join([self.FEDERATED, additional_url])
-        return self.FEDERATED
 
     @nextcloud_method
     def get_shares(self):
@@ -285,6 +280,16 @@ class Share(WithRequester):
 
         url = self.get_local_url(sid)
         return self.requester.put(url, data=params)
+
+
+class FederatedCloudShare(WithRequester):
+    API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
+    FEDERATED = "remote_shares"
+
+    def get_federated_url(self, additional_url=""):
+        if additional_url:
+            return "/".join([self.FEDERATED, additional_url])
+        return self.FEDERATED
 
     @nextcloud_method
     def list_accepted_federated_cloudshares(self):
