@@ -221,7 +221,9 @@ class Share(WithRequester):
         url = self.get_local_url()
         if public_upload:
             public_upload = "true"
-        if (path is None or not isinstance(share_type, int)) or (share_type in [0, 1] and share_with is None):
+        if (path is None or not isinstance(share_type, int)) \
+                or (share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
+                    and share_with is None):
             return False
 
         data = {"path": path, "shareType": share_type}
@@ -229,7 +231,7 @@ class Share(WithRequester):
             data["shareWith"] = share_with
         if public_upload:
             data["publicUpload"] = public_upload
-        if share_type == 3 and password is not None:
+        if share_type == ShareType.PUBLIC_LINK and password is not None:
             data["password"] = str(password)
         if permissions is not None:
             data["permissions"] = permissions
