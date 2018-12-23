@@ -37,7 +37,7 @@ class BaseTestCase(TestCase):
         res = self.nxc.delete_user(username)
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
 
-    def clear(self, nxc=None, user_ids=None, group_ids=None, share_ids=None):
+    def clear(self, nxc=None, user_ids=None, group_ids=None, share_ids=None, group_folder_ids=None):
         """
         Delete created objects during tests
 
@@ -62,6 +62,10 @@ class BaseTestCase(TestCase):
         if user_ids:
             for user_id in user_ids:
                 res = nxc.delete_user(user_id)
+                assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        if group_folder_ids:
+            for group_folder_id in group_folder_ids:
+                res = nxc.delete_group_folder(group_folder_id)
                 assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
 
     def get_random_string(self, length=6):

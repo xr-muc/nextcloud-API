@@ -55,8 +55,8 @@ class Requester(object):
             add to url after api_url
         :return: str
         """
-        if additional_url and not additional_url.startswith("/"):
-            additional_url = "/" + additional_url
+        if additional_url and not str(additional_url).startswith("/"):
+            additional_url = "/{}".format(additional_url)
 
         if self.to_json:
             self.query_components.append("format=json")
@@ -114,41 +114,128 @@ class GroupFolders(WithRequester):
 
     @nextcloud_method
     def get_group_folders(self):
+        """
+        Return a list of call configured folders and their settings
+
+        Returns:
+
+        """
         return self.requester.get()
 
     @nextcloud_method
+    def get_group_folder(self, fid):
+        """
+        Return a specific configured folder and it's settings
+
+        Args:
+            fid (int/str): group folder id
+
+        Returns:
+
+        """
+        return self.requester.get(fid)
+
+    @nextcloud_method
     def create_group_folder(self, mountpoint):
-        # FIXME: doesn't work
-        return self.requester.post("", {"mountpoint": mountpoint})
+        """
+        Create a new group folder
+
+        Args:
+            mountpoint (str): name for the new folder
+
+        Returns:
+
+        """
+        return self.requester.post(data={"mountpoint": mountpoint})
 
     @nextcloud_method
     def delete_group_folder(self, fid):
+        """
+        Delete a group folder
+
+        Args:
+            fid (int/str): group folder id
+
+        Returns:
+
+        """
         return self.requester.delete(fid)
 
     @nextcloud_method
     def grant_access_to_group_folder(self, fid, gid):
-        url = "/".join(fid, gid)  # FIXME: doesn't work
-        return self.requester.post(url)
+        """
+        Give a group access to a folder
+
+        Args:
+            fid (int/str): group folder id
+            gid (str): group to share with id
+
+        Returns:
+
+        """
+        url = "/".join([str(fid), "groups"])
+        return self.requester.post(url, data={"group": gid})
 
     @nextcloud_method
     def revoke_access_to_group_folder(self, fid, gid):
-        url = "/".join(fid, gid)  # FIXME: doesn't work
+        """
+        Remove access from a group to a folder
+
+        Args:
+            fid (int/str): group folder id
+            gid (str): group id
+
+        Returns:
+
+        """
+        url = "/".join([str(fid), "groups", gid])
         return self.requester.delete(url)
 
     @nextcloud_method
-    def set_access_to_group_folder(self, fid, gid, permissions):
-        url = "/".join(fid, gid)  # FIXME: doesn't work
-        return self.requester.post(url, {"permissions": permissions})
+    def set_permissions_to_group_folder(self, fid, gid, permissions):
+        """
+        Set the permissions a group has in a folder
+
+        Args:
+            fid (int/str): group folder id
+            gid (str): group id
+            permissions (int): The new permissions for the group as attribute of Permission class
+
+        Returns:
+
+        """
+        url = "/".join([str(fid), "groups", gid])
+        return self.requester.post(url=url, data={"permissions": permissions})
 
     @nextcloud_method
     def set_quota_of_group_folder(self, fid, quota):
-        url = "/".join(fid, "quota")  # FIXME: doesn't work
+        """
+        Set the quota for a folder in bytes
+
+        Args:
+            fid (int/str): group folder id
+            quota (int/str): The new quota for the folder in bytes, user -3 for unlimited
+
+        Returns:
+
+        """
+        url = "/".join([str(fid), "quota"])
         return self.requester.post(url, {"quota": quota})
 
     @nextcloud_method
     def rename_group_folder(self, fid, mountpoint):
-        url = "/".join(fid, "mountpoint") # FIXME: doesn't work
-        return self.requester.post(url, {"mountpoint": mountpoint})
+        """
+        Change the name of a folder
+
+        Args:
+            fid (int/str): group folder id
+            mountpoint (str): The new name for the folder
+
+        Returns:
+
+        """
+        url = "/".join([str(fid), "mountpoint"])
+        return self.requester.post(url=url, data={"mountpoint": mountpoint})
 
 
 class Share(WithRequester):
