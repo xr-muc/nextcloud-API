@@ -21,7 +21,7 @@ class TestGroups(BaseTestCase):
         # test search argument
         res = self.nxc.get_groups(search=self.group_name)
         groups = res['ocs']['data']['groups']
-        assert [self.group_name] == groups
+        assert [self.group_name, "everyone"] == groups
         # test limit argument
         res = self.nxc.get_groups(limit=0)
         assert len(res['ocs']['data']['groups']) == 0

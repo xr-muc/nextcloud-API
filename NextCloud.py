@@ -160,6 +160,25 @@ class Share(WithRequester):
             return "/".join([self.LOCAL, additional_url])
         return self.LOCAL
 
+    @staticmethod
+    def validate_share_parameters(path, share_type, share_with):
+        """
+        Check if share parameters make sense
+
+        Args:
+            path (str): path to the file/folder which should be shared
+            share_type (int): ShareType attribute
+            share_with (str): user/group id with which the file should be shared
+
+        Returns:
+            bool: True if parameters make sense together, False otherwise
+        """
+        if (path is None or not isinstance(share_type, int)) \
+                or (share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
+                    and share_with is None):
+            return False
+        return True
+
     @nextcloud_method
     def get_shares(self):
         """ Get all shares from the user """
@@ -218,13 +237,12 @@ class Share(WithRequester):
         Returns:
 
         """
+        if not self.validate_share_parameters(path, share_type, share_with):
+            return False
+
         url = self.get_local_url()
         if public_upload:
             public_upload = "true"
-        if (path is None or not isinstance(share_type, int)) \
-                or (share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
-                    and share_with is None):
-            return False
 
         data = {"path": path, "shareType": share_type}
         if share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]:

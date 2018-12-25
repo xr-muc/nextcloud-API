@@ -34,15 +34,16 @@ class TestShares(BaseTestCase):
         # get all shares
         all_shares = self.nxc_local.get_shares()['ocs']['data']
         assert len(all_shares) == 1
-        assert all_shares[0]['id'] == share_id and all_shares[0]['share_type'] == ShareType.PUBLIC_LINK.value
+        assert all_shares[0]['id'] == share_id
+        assert all_shares[0]['share_type'] == ShareType.PUBLIC_LINK.value
 
         # get single share info
         created_share = self.nxc_local.get_share_info(share_id)
         assert res['ocs']['meta']['statuscode'] == self.SHARE_API_SUCCESS_CODE
         created_share_data = created_share['ocs']['data'][0]
-        assert (created_share_data['id'] == share_id
-                and created_share_data['share_type'] == ShareType.PUBLIC_LINK.value
-                and created_share_data['uid_owner'] == self.user_username)
+        assert created_share_data['id'] == share_id
+        assert created_share_data['share_type'] == ShareType.PUBLIC_LINK.value
+        assert created_share_data['uid_owner'] == self.user_username
 
         # delete share
         res = self.nxc_local.delete_share(share_id)
@@ -72,10 +73,10 @@ class TestShares(BaseTestCase):
             created_share = self.nxc_local.get_share_info(share_id)
             assert res['ocs']['meta']['statuscode'] == self.SHARE_API_SUCCESS_CODE
             created_share_data = created_share['ocs']['data'][0]
-            assert (created_share_data['id'] == share_id
-                    and created_share_data['share_type'] == share_type
-                    and created_share_data['share_with'] == share_with
-                    and created_share_data['permissions'] == permissions)
+            assert created_share_data['id'] == share_id
+            assert created_share_data['share_type'] == share_type
+            assert created_share_data['share_with'] == share_with
+            assert created_share_data['permissions'] == permissions
 
             # delete share, user
             self.nxc_local.delete_share(share_id)
@@ -143,11 +144,11 @@ class TestShares(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.SHARE_API_SUCCESS_CODE
 
         updated_share_data = res['ocs']['data']
-        assert (updated_share_data['id'] == share_id
-                and updated_share_data['share_type'] == share_type
-                and updated_share_data['share_with'] == share_with
-                and updated_share_data['permissions'] == new_permissions
-                and updated_share_data['expiration'] is None)
+        assert updated_share_data['id'] == share_id
+        assert updated_share_data['share_type'] == share_type
+        assert updated_share_data['share_with'] == share_with
+        assert updated_share_data['permissions'] == new_permissions
+        assert updated_share_data['expiration'] is None
 
         # update share expire date
         expire_date = datetime_to_expire_date(datetime.now() + timedelta(days=5))
@@ -155,11 +156,11 @@ class TestShares(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.SHARE_API_SUCCESS_CODE
 
         updated_share_data = res['ocs']['data']
-        assert (updated_share_data['id'] == share_id
-                and updated_share_data['share_type'] == share_type
-                and updated_share_data['share_with'] == share_with
-                and updated_share_data['permissions'] == new_permissions
-                and updated_share_data['expiration'] == "{} 00:00:00".format(expire_date))
+        assert updated_share_data['id'] == share_id
+        assert updated_share_data['share_type'] == share_type
+        assert updated_share_data['share_with'] == share_with
+        assert updated_share_data['permissions'] == new_permissions
+        assert updated_share_data['expiration'] == "{} 00:00:00".format(expire_date)
 
         self.clear(self.nxc_local, share_ids=[share_id], user_ids=[user_to_share_with])
 

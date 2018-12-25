@@ -43,9 +43,9 @@ class BaseTestCase(TestCase):
 
         Args:
             nxc (NextCloud object): (optional) Nextcloud instance, if not given - self.nxc is used
-            user_ids (list): list of user_ids
-            group_ids (list): list of group_ids
-            share_ids (list): list of group_ids
+            user_ids (list): list of user ids
+            group_ids (list): list of group ids
+            share_ids (list): list of shares ids
 
         Returns:
 
