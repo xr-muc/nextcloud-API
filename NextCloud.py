@@ -1,7 +1,5 @@
 import enum
-
 import requests
-
 
 PUBLIC_API_NAME_CLASS_MAP = dict()
 
@@ -63,7 +61,7 @@ class Requester(object):
         if self.to_json:
             self.query_components.append("format=json")
 
-        ret = "{base_url}/{api_url}{additional_url}".format(
+        ret = "{base_url}{api_url}{additional_url}".format(
             base_url=self.base_url, api_url=self.API_URL, additional_url=additional_url)
 
         if self.to_json:
@@ -90,6 +88,7 @@ class NextCloud(object):
             "GroupFolders": GroupFolders(requester),
             "Share": Share(requester),
             "User": User(requester),
+            "FederatedCloudShare": FederatedCloudShare(requester)
         }
         for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
             setattr(self, name, getattr(self.functionality[location], name))
@@ -155,107 +154,191 @@ class GroupFolders(WithRequester):
 class Share(WithRequester):
     API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
     LOCAL = "shares"
-    FEDERATED = "remote_shares"
 
     def get_local_url(self, additional_url=""):
         if additional_url:
-            return "/".join(self.LOCAL, additional_url)
+            return "/".join([self.LOCAL, additional_url])
         return self.LOCAL
 
-    def get_federated_url(self, additional_url=""):
-        if additional_url:
-            return "/".join(self.FEDERATED, additional_url)
-        return self.LOCAL
+    @staticmethod
+    def validate_share_parameters(path, share_type, share_with):
+        """
+        Check if share parameters make sense
+
+        Args:
+            path (str): path to the file/folder which should be shared
+            share_type (int): ShareType attribute
+            share_with (str): user/group id with which the file should be shared
+
+        Returns:
+            bool: True if parameters make sense together, False otherwise
+        """
+        if (path is None or not isinstance(share_type, int)) \
+                or (share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
+                    and share_with is None):
+            return False
+        return True
 
     @nextcloud_method
     def get_shares(self):
-        self.requester.get(self.requester.get_local_url())
+        """ Get all shares from the user """
+        return self.requester.get(self.get_local_url())
 
     @nextcloud_method
     def get_shares_from_path(self, path, reshares=None, subfiles=None):
-        url = self.requester.get_local_url(path)
+        """
+        Get all shares from a given file/folder
 
-        if reshares is not None:
-            self.query_components.append("reshares=true")
+        Args:
+            path (str): path to file/folder
+            reshares (bool): (optional) return not only the shares from the current user but all shares from the given file
+            subfiles (bool): (optional) return all shares within a folder, given that path defines a folder
 
-        if subfiles is not None:
-            self.query_components.append("subfiles=true")
+        Returns:
 
-        return self.requester.get(url)
+        """
+        url = self.get_local_url()
+        params = {
+            "path": path,
+            "reshares": None if reshares is None else str(bool(reshares)).lower(),  # TODO: test reshares, subfiles
+            "subfiles": None if subfiles is None else str(bool(subfiles)).lower(),
+        }
+        return self.requester.get(url, params=params)
 
     @nextcloud_method
     def get_share_info(self, sid):
-        self.requester.get(self.requester.get_local_url(sid))
+        """
+        Get information about a given share
+
+        Args:
+            sid (int): share id
+
+        Returns:
+        """
+        return self.requester.get(self.get_local_url(sid))
 
     @nextcloud_method
     def create_share(
-            self, path, shareType, shareWith=None, publicUpload=None,
+            self, path, share_type, share_with=None, public_upload=None,
             password=None, permissions=None):
-        url = self.requester.get_local_url()
-        if publicUpload:
-            publicUpload = "true"
-        if (path is None or not isinstance(shareType, int)) or (shareType in [0, 1] and shareWith is None):
+        """
+        Share a file/folder with a user/group or as public link
+
+        Mandatory fields: share_type, path and share_with for share_type USER (0) or GROUP (1).
+
+        Args:
+            path (str): path to the file/folder which should be shared
+            share_type (int): ShareType attribute
+            share_with (str): user/group id with which the file should be shared
+            public_upload (bool): bool, allow public upload to a public shared folder (true/false)
+            password (str): password to protect public link Share with
+            permissions (int): sum of selected Permission attributes
+
+        Returns:
+
+        """
+        if not self.validate_share_parameters(path, share_type, share_with):
             return False
-        msg = {"path": path, "shareType": shareType}
-        if shareType in [0, 1]:
-            msg["shareWith"] = shareWith
-        if publicUpload:
-            msg["publicUpload"] = publicUpload
-        if shareType == 3 and password is not None:
-            msg["password"] = str(password)
+
+        url = self.get_local_url()
+        if public_upload:
+            public_upload = "true"
+
+        data = {"path": path, "shareType": share_type}
+        if share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]:
+            data["shareWith"] = share_with
+        if public_upload:
+            data["publicUpload"] = public_upload
+        if share_type == ShareType.PUBLIC_LINK and password is not None:
+            data["password"] = str(password)
         if permissions is not None:
-            msg["permissions"] = permissions
-        return self.requester.post(url, msg)
+            data["permissions"] = permissions
+        return self.requester.post(url, data)
 
     @nextcloud_method
     def delete_share(self, sid):
-        return self.requester.delete(self.requester.get_local_url(sid))
+        """
+        Remove the given share
+
+        Args:
+            sid (str): share id
+
+        Returns:
+
+        """
+        return self.requester.delete(self.get_local_url(sid))
 
     @nextcloud_method
-    def update_share(self, sid, permissions=None, password=None, publicUpload=None, expireDate=""):
-        msg = {}
-        if permissions:
-            msg["permissions"] = permissions
-        if password is not None:
-            msg["password"] = str(password)
-        if publicUpload:
-            msg["publicUpload"] = "true"
-        if publicUpload is False:
-            msg["publicUpload"] = "false"
-        if expireDate:
-            msg["expireDate"] = expireDate
-        url = self.requester.get_local_url(sid)
-        return self.requester.put(url, msg)
+    def update_share(self, sid, permissions=None, password=None, public_upload=None, expire_date=""):
+        """
+        Update a given share, only one value can be updated per request
+
+        Args:
+            sid (str): share id
+            permissions (int): sum of selected Permission attributes
+            password (str): password to protect public link Share with
+            public_upload (bool): bool, allow public upload to a public shared folder (true/false)
+            expire_date (str): set an expire date for public link shares. Format: ‘YYYY-MM-DD’
+
+        Returns:
+
+        """
+        params = dict(
+            permissions=permissions,
+            password=password,
+            expireDate=expire_date
+        )
+        if public_upload:
+            params["publicUpload"] = "true"
+        if public_upload is False:
+            params["publicUpload"] = "false"
+
+        # check if only one param specified
+        specified_params_count = sum([int(bool(each)) for each in params.values()])
+        if specified_params_count > 1:
+            raise ValueError("Only one parameter for update can be specified per request")
+
+        url = self.get_local_url(sid)
+        return self.requester.put(url, data=params)
+
+
+class FederatedCloudShare(WithRequester):
+    API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
+    FEDERATED = "remote_shares"
+
+    def get_federated_url(self, additional_url=""):
+        if additional_url:
+            return "/".join([self.FEDERATED, additional_url])
+        return self.FEDERATED
 
     @nextcloud_method
     def list_accepted_federated_cloudshares(self):
-        # FIXME: doesn't work
-        url = self.requester.get_federated_url()
+        url = self.get_federated_url()
         return self.requester.get(url)
 
     @nextcloud_method
     def get_known_federated_cloudshare(self, sid):
-        url = self.requester.get_federated_url(sid)
+        url = self.get_federated_url(sid)
         return self.requester.get(url)
 
     @nextcloud_method
     def delete_accepted_federated_cloudshare(self, sid):
-        url = self.requester.get_federated_url(sid)
+        url = self.get_federated_url(sid)
         return self.requester.delete(url)
 
     @nextcloud_method
     def list_pending_federated_cloudshares(self, sid):
-        url = self.requester.get_federated_url("pending")
+        url = self.get_federated_url("pending")
         return self.requester.get(url)
 
     @nextcloud_method
     def accept_pending_federated_cloudshare(self, sid):
-        url = self.requester.get_federated_url("pending/{sid}".format(sid=sid))
+        url = self.get_federated_url("pending/{sid}".format(sid=sid))
         return self.requester.post(url)
 
     @nextcloud_method
     def decline_pending_federated_cloudshare(self, sid):
-        url = self.requester.get_federated_url("pending/{sid}".format(sid=sid))
+        url = self.get_federated_url("pending/{sid}".format(sid=sid))
         return self.requester.delete(url)
 
 
@@ -554,11 +637,12 @@ class OCSCode(enum.IntEnum):
 class ShareType(enum.IntEnum):
     USER = 0
     GROUP = 1
-    PUBLIClINK = 3
+    PUBLIC_LINK = 3
     FEDERATED_CLOUD_SHARE = 6
 
 
 class Permission(enum.IntEnum):
+    """ Permission for Share have to be sum of selected permissions """
     READ = 1
     UPDATE = 2
     CREATE = 4
@@ -570,5 +654,5 @@ class Permission(enum.IntEnum):
 QUOTE_UNLIMITED = -3
 
 
-def datttetime_to_expireDate(date):
+def datetime_to_expire_date(date):
     return date.strftime("%Y-%m-%d")
