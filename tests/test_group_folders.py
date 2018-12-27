@@ -3,10 +3,11 @@ from NextCloud import Permission, QUOTE_UNLIMITED
 from .base import BaseTestCase
 
 
-class TestShares(BaseTestCase):
+class TestGroupFolders(BaseTestCase):
 
     def setUp(self):
-        super(TestShares, self).setUp()
+        super(TestGroupFolders, self).setUp()
+        self.nxc.enable_app('groupfolders')
 
     def test_crud_group_folder(self):
         # create new group folder
