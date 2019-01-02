@@ -77,10 +77,10 @@ def nextcloud_method(method_to_wrap):
 
 class NextCloud(object):
 
-    def __init__(self, endpoint, user, passwd, js=False):
+    def __init__(self, endpoint, user, password, js=False):
         self.query_components = []
 
-        requester = Requester(endpoint, user, passwd, js)
+        requester = Requester(endpoint, user, password, js)
 
         self.functionality = {
             "Apps": Apps(requester),
