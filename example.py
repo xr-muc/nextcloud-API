@@ -1,50 +1,33 @@
+import os
+
 import NextCloud
 
-url = "INPUT_YOUR_CLOUD"
-user_id = "INPUT_YOUR_USERNAME"
-password = "INPUT_YOUR_PASSWORD"
+NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOST'])
+NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_USERNAME')
+NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_PASSWORD')
 
 # True if you want to get response as JSON
 # False if you want to get response as XML
 to_js = True
 
-nxc = NextCloud.NextCloud(endpoint=url, user=user_id, password=password, js=to_js)
+nxc = NextCloud.NextCloud(endpoint=NEXTCLOUD_URL, user=NEXTCLOUD_USERNAME, password=NEXTCLOUD_PASSWORD, js=to_js)
 
-# get all users
+# Quick start
 nxc.get_users()
+new_user_id = "new_user_username"
+add_user_res = nxc.add_user(new_user_id, "new_user_password321_123")
+group_name = "new_group_name"
+add_group_res = nxc.add_group(group_name)
+add_to_group_res = nxc.add_to_group(new_user_id, group_name)
+# End quick start
 
-# add new user
-nxc.add_user("user_username", "new_user_password321_123")
+assert add_group_res['ocs']['meta']['statuscode'] == 100
+assert new_user_id in nxc.get_group(group_name)['ocs']['data']['users']
+assert add_user_res['ocs']['meta']['statuscode'] == 100
+assert add_to_group_res['ocs']['meta']['statuscode'] == 100
 
-# get user by user id
-nxc.get_user("user_username")
-
-# edit user
-nxc.edit_user("user_username", "phone", "123456789")
-
-# disable user by user id
-nxc.disable_user("user_username")
-
-# enable user by user id
-nxc.enable_user("user_username")
-
-# add user to group by user id and group id
-nxc.add_to_group("user_username", "group_id")
-
-# remove user from group id
-nxc.remove_from_group("user_username", "group_id")
-
-# make user subadmin for group
-nxc.create_subadmin("user_username", "group_id")
-
-# remove user from gorup subadmins
-nxc.remove_subadmin("user_username", "group_id")
-
-# get groups in which user is subadmin
-nxc.get_subadmin_groups("user_username")
-
-# trigger welcome email for user again
-nxc.resend_welcome_mail("user_username")
-
-# delete user by user id
-nxc.delete_user("user_username")
+# remove user
+remove_user_res = nxc.delete_user(new_user_id)
+assert remove_user_res['ocs']['meta']['statuscode'] == 100
+user_res = nxc.get_user(new_user_id)
+assert user_res['ocs']['meta']['statuscode'] == 404

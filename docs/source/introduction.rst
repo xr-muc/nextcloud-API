@@ -15,20 +15,16 @@ Quick start
 
 First, create your NextCloud instance:
 
-.. code-block:: python
-
-    from NextCloud import NextCloud
-
-    nxc = NextCloud.NextCloud("url", "user id", "password", js=True)
+.. include:: ../../example.py
+    :literal:
+    :end-before: # Quick start
 
 Then you can work with NextCloud objects:
 
-.. code-block:: python
-
-    nxc.get_users()
-    nxc.add_user("new_user_username", "new_user_password321_123")
-    nxc.add_group("new_group_name")
-    nxc.add_to_group("new_user_username", "new_group_name")
+.. include:: ../../example.py
+    :literal:
+    :start-after: # Quick start
+    :end-before: # End quick start
 
 Download and install
 --------------------
