@@ -738,7 +738,7 @@ class Permission(enum.IntEnum):
     ALL = 31
 
 
-QUOTE_UNLIMITED = -3
+QUOTA_UNLIMITED = -3
 
 
 def datetime_to_expire_date(date):

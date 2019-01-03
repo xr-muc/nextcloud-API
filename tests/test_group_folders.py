@@ -1,4 +1,4 @@
-from NextCloud import Permission, QUOTE_UNLIMITED
+from NextCloud import Permission, QUOTA_UNLIMITED
 
 from .base import BaseTestCase
 
@@ -89,7 +89,7 @@ class TestGroupFolders(BaseTestCase):
 
         # assert quota is unlimited by default
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res['ocs']['data']['quota'] == QUOTE_UNLIMITED
+        assert int(res['ocs']['data']['quota']) == QUOTA_UNLIMITED
 
         # set quota
         QUOTA_ONE_GB = 1024 * 1024 * 1024
@@ -116,7 +116,7 @@ class TestGroupFolders(BaseTestCase):
         self.nxc.grant_access_to_group_folder(group_folder_id, group_id)
         # assert permissions is ALL by default
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res['ocs']['data']['quota'] == QUOTE_UNLIMITED
+        assert int(res['ocs']['data']['quota']) == QUOTA_UNLIMITED
 
         # set permissions
         new_permission = Permission.READ + Permission.CREATE
