@@ -1,4 +1,4 @@
-FROM nextcloud:apache
+FROM nextcloud:14.0.4-apache
 
 RUN apt-get update && apt-get install wget && apt-get clean
 RUN wget https://github.com/nextcloud/groupfolders/releases/download/v2.0.2/groupfolders-2.0.2.tar.gz -P /tmp \

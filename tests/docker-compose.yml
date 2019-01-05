@@ -38,6 +38,7 @@ services:
       context: ../
       dockerfile: Dockerfile
     environment:
+      NEXTCLOUD_VERSION: "14.0.4"
       NEXTCLOUD_HOST: "app"
       NEXTCLOUD_USERNAME: "admin"
       NEXTCLOUD_PASSWORD: "admin"
