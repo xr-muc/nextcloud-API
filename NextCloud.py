@@ -90,6 +90,7 @@ class NextCloud(object):
             "User": User(requester),
             "FederatedCloudShare": FederatedCloudShare(requester),
             "Activity": Activity(requester),
+            "Notifications": Notifications(requester),
         }
         for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
             setattr(self, name, getattr(self.functionality[location], name))
@@ -744,6 +745,50 @@ class Activity(WithRequester):
         if params['object_type'] and params['object_id']:
             return self.requester.get(url="filter", params=params)
         return self.requester.get(params=params)
+
+
+class Notifications(WithRequester):
+    API_URL = "/ocs/v2.php/apps/notifications/api/v2/notifications"
+
+    @nextcloud_method
+    def get_notifications(self):
+        """ Get list of notifications for a logged in user """
+        return self.requester.get()
+
+    @nextcloud_method
+    def get_notification(self, notification_id):
+        """
+        Get single notification by id for a user
+
+        Args:
+            notification_id (int): Notification id
+
+        Returns:
+
+        """
+        return self.requester.get(url=notification_id)
+
+    @nextcloud_method
+    def delete_notification(self, notification_id):
+        """
+        Delete single notification by id for a user
+
+        Args:
+            notification_id (int): Notification id
+
+        Returns:
+
+        """
+        return self.requester.delete(url=notification_id)
+
+    @nextcloud_method
+    def delete_all_notifications(self):
+        """ Delete all notification for a logged in user
+
+        Notes:
+            This endpoint was added for Nextcloud 14
+        """
+        return self.requester.delete()
 
 
 class OCSCode(enum.IntEnum):
