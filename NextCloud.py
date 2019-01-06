@@ -737,10 +737,12 @@ class Activity(WithRequester):
         params = dict(
             since=since,
             limit=limit,
-            object_type=object_type,  # BUG: not working
-            object_id=object_id,  # BUG: not working
+            object_type=object_type,
+            object_id=object_id,
             sort=sort
         )
+        if params['object_type'] and params['object_id']:
+            return self.requester.get(url="filter", params=params)
         return self.requester.get(params=params)
 
 
