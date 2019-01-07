@@ -6,14 +6,14 @@ services:
     restart: always
     networks:
       - backend
-    volumes:
-      - db:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
 
   app:
-    image: nextcloud:apache
+    build:
+      context: ../nextcloud
+      dockerfile: Dockerfile
     restart: always
     networks:
       backend:
@@ -21,8 +21,6 @@ services:
           - app
     ports:
       - 8080:80
-    volumes:
-      - nextcloud:/var/www/html
     environment:
       POSTGRES_DB: 'nextcloud'
       POSTGRES_USER: 'postgres'
@@ -49,10 +47,6 @@ services:
           - python-api
     volumes:
       - ../:/usr/src/app
-
-volumes:
-  db:
-  nextcloud:
 
 networks:
     backend:
