@@ -7,13 +7,15 @@ services:
     networks:
       - backend
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
 
   app:
     build:
       context: ../nextcloud
       dockerfile: Dockerfile
+      args:
+        NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION}
     restart: always
     networks:
       backend:
@@ -22,14 +24,15 @@ services:
     ports:
       - 8080:80
     environment:
-      POSTGRES_DB: 'nextcloud'
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'secret'
-      POSTGRES_HOST: 'db'
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_HOST
 
-      NEXTCLOUD_TRUSTED_DOMAINS: "app"
-      NEXTCLOUD_ADMIN_USER: "admin"
-      NEXTCLOUD_ADMIN_PASSWORD: "admin"
+      - NEXTCLOUD_VERSION
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_HOSTNAME}
+      - NEXTCLOUD_ADMIN_USER
+      - NEXTCLOUD_ADMIN_PASSWORD
     depends_on:
       - db
 
@@ -38,10 +41,10 @@ services:
       context: ../
       dockerfile: Dockerfile
     environment:
-      NEXTCLOUD_VERSION: "14.0.4"
-      NEXTCLOUD_HOST: "app"
-      NEXTCLOUD_USERNAME: "admin"
-      NEXTCLOUD_PASSWORD: "admin"
+      - NEXTCLOUD_VERSION
+      - NEXTCLOUD_HOSTNAME
+      - NEXTCLOUD_ADMIN_USER
+      - NEXTCLOUD_ADMIN_PASSWORD
     networks:
       backend:
         aliases:
