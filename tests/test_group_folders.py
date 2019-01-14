@@ -26,7 +26,7 @@ class TestGroupFolders(BaseTestCase):
         # retrieve single folder
         res = self.nxc.get_group_folder(group_folder_id)
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-        assert res['ocs']['data']['id'] == group_folder_id
+        assert str(res['ocs']['data']['id']) == str(group_folder_id)
         assert res['ocs']['data']['mount_point'] == folder_mount_point
 
         # rename group folder
@@ -67,7 +67,7 @@ class TestGroupFolders(BaseTestCase):
 
         # check that folder has this group
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res['ocs']['data']['groups'] == {group_id: Permission.ALL}
+        assert res['ocs']['data']['groups'] == {group_id: str(Permission.ALL.value)}
 
         # revoke access
         res = self.nxc.revoke_access_to_group_folder(group_folder_id, group_id)
@@ -97,7 +97,7 @@ class TestGroupFolders(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE and res['ocs']['data'] is True
         # check if quota changed
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res['ocs']['data']['quota'] == QUOTA_ONE_GB
+        assert str(res['ocs']['data']['quota']) == str(QUOTA_ONE_GB)
 
         # clear
         self.clear(group_folder_ids=[group_folder_id])
@@ -124,7 +124,7 @@ class TestGroupFolders(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE and res['ocs']['data'] is True
         # check if permissions changed
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res['ocs']['data']['groups'][group_id] == new_permission
+        assert str(res['ocs']['data']['groups'][group_id]) == str(new_permission)
 
         # clear
         self.clear(nxc=self.nxc, group_ids=[group_id], group_folder_ids=[group_folder_id])

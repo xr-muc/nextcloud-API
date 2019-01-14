@@ -1,40 +1,19 @@
 version: '3'
 
 services:
-  db:
-    image: postgres:9.6-alpine
-    restart: always
-    networks:
-      - backend
-    environment:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-
   app:
     build:
       context: ../nextcloud
       dockerfile: Dockerfile
       args:
         NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION}
-    restart: always
     networks:
       backend:
-        aliases:
-          - app
-    ports:
-      - 8080:80
     environment:
-      - POSTGRES_DB
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_HOST
-
-      - NEXTCLOUD_VERSION
+      - SQLITE_DATABASE=nextcloud
       - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_HOSTNAME}
       - NEXTCLOUD_ADMIN_USER
       - NEXTCLOUD_ADMIN_PASSWORD
-    depends_on:
-      - db
 
   python-api:
     build:
