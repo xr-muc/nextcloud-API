@@ -92,6 +92,7 @@ class NextCloud(object):
             "Activity": Activity(requester),
             "Notifications": Notifications(requester),
             "UserLDAP": UserLDAP(requester),
+            "Capabilities": Capabilities(requester),
         }
         for name, location in PUBLIC_API_NAME_CLASS_MAP.items():
             setattr(self, name, getattr(self.functionality[location], name))
@@ -110,6 +111,15 @@ class WithRequester(object):
         # dynamically set API_URL for requester
         self._requester.API_URL = self.API_URL
         return self._requester
+
+
+class Capabilities(WithRequester):
+    API_URL = "/ocs/v1.php/cloud/capabilities"
+
+    @nextcloud_method
+    def get_capabilities(self):
+        """ Obtain capabilities provided by the Nextcloud server and its apps """
+        return self.requester.get()
 
 
 class GroupFolders(WithRequester):

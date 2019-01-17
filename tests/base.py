@@ -5,9 +5,10 @@ from unittest import TestCase
 
 from NextCloud import NextCloud
 
-NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOST'])
-NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_USERNAME')
-NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_PASSWORD')
+NEXTCLOUD_VERSION = os.environ.get('NEXTCLOUD_VERSION')
+NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
+NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')
+NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_ADMIN_PASSWORD')
 
 
 class BaseTestCase(TestCase):
