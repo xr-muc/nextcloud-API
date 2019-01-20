@@ -1,9 +1,9 @@
 import requests
 from datetime import datetime, timedelta
 
-from NextCloud import ShareType, Permission, datetime_to_expire_date
-
 from .base import BaseTestCase, NextCloud, NEXTCLOUD_URL
+
+from src.base import ShareType, Permission, datetime_to_expire_date
 
 
 class TestShares(BaseTestCase):
@@ -163,6 +163,5 @@ class TestShares(BaseTestCase):
         assert updated_share_data['expiration'] == "{} 00:00:00".format(expire_date)
 
         self.clear(self.nxc_local, share_ids=[share_id], user_ids=[user_to_share_with])
-
 
 

@@ -1,6 +1,6 @@
 import os
 
-import NextCloud
+import src.NextCloud as NextCloud
 
 NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
 NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')

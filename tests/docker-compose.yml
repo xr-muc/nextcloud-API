@@ -9,6 +9,8 @@ services:
         NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION}
     networks:
       backend:
+    ports:
+      - 8080:80
     environment:
       - SQLITE_DATABASE=nextcloud
       - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_HOSTNAME}
