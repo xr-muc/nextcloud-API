@@ -2,9 +2,9 @@ import os
 
 import NextCloud
 
-NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOST'])
-NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_USERNAME')
-NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_PASSWORD')
+NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
+NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')
+NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_ADMIN_PASSWORD')
 
 # True if you want to get response as JSON
 # False if you want to get response as XML
