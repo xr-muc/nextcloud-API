@@ -1,11 +1,24 @@
-# OCS-API-for-Py
-NextCloud OCS API for Python based on the [NEXT-OCS-API-forPy](https://github.com/Dosugamea/NEXT-OCS-API-forPy) project by "[Rabbit Horse](https://dosugamea.github.io/)".
-Tested at Python 3.7 / NextCloud 14.0
+NextCloud Python api
+====================
 
-## Which API does it support?
-- `User Provisioning API`: https://docs.nextcloud.com/server/12/admin_manual/configuration_user/user_provisioning_api.html
-- `OCS Share API`: https://docs.nextcloud.com/server/12/developer_manual/core/ocs-share-api.html
-- `GroupFolders`: https://github.com/nextcloud/groupfolders
+[![Build Status](https://travis-ci.org/danil-topc/nextcloud-API.svg?branch=master)](https://travis-ci.org/danil-topc/nextcloud-API)
+
+Overview
+---------
+Python wrapper for NextCloud api
+
+This is Python wrapper for NextCloud's API. With it you can manage your NextCloud instances from Python scripts.
+Tested with python 3.7, NextCloud 14.
+
+## Which API does it support ?
+
+- `User provisioning API`: https://docs.nextcloud.com/server/14/admin_manual/configuration_user/user_provisioning_api.html
+- `OCS Share API`: https://docs.nextcloud.com/server/14/developer_manual/core/ocs-share-api.html
+- `WebDAV API`: https://docs.nextcloud.com/server/14/developer_manual/client_apis/WebDAV/index.html
+- `Activity app API`: https://github.com/nextcloud/activity/blob/master/docs/endpoint-v2.md
+- `Notifications app API`: https://github.com/nextcloud/notifications/
+- `The LDAP configuration API`: https://docs.nextcloud.com/server/14/admin_manual/configuration_user/user_auth_ldap_api.html
+- `Group folders API`: https://github.com/nextcloud/groupfolders
 
 ## How to use?
 Let's try to see `example.py` and see `NextCloud.py`.
