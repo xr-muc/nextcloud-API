@@ -12,9 +12,63 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import json
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
+
+
+# -- API implementation statuses -----------------------------------------------------
+
+def make_rst_table_with_header(table_data):
+    rst_table = ""
+
+    page_title = table_data['title']
+    headers = table_data['headers']
+    headers_attributes = table_data['headers attributes']
+    data = table_data['data']
+
+    # write page title
+    rst_table += "{}\n{}\n".format(page_title, "-" * len(page_title))
+
+    # calculate each column max length
+    column_lengths = []
+    for i in range(len(headers)):
+        column_members = [headers[i]]
+        column_members += [each[headers_attributes[i]] for each in data]
+        column_length = max([len(each) for each in column_members])
+
+        column_lengths.append(column_length)
+
+    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
+    # write table headers
+    for i in range(len(headers)):
+        rst_table += headers[i]
+        if i != len(headers) - 1:
+            rst_table += " " * (column_lengths[i] - len(headers[i]) + 1)
+        else:
+            rst_table += "\n"
+
+    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
+    # write table content
+    for each in data:
+        for i in range(len(headers_attributes)):
+            rst_table += each[headers_attributes[i]]
+            if i != len(headers) - 1:
+                rst_table += " " * (column_lengths[i] - len(each[headers_attributes[i]]) + 1)
+            else:
+                rst_table += "\n"
+
+    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
+
+    return rst_table
+
+
+with open("../../api_implementation.json", "r") as json_data, \
+        open('api_implementation.rst', 'w') as api_implementation:
+    table_data = json.load(json_data)
+    content = make_rst_table_with_header(table_data)
+    api_implementation.write(content)
 
 # -- Project information -----------------------------------------------------
 
