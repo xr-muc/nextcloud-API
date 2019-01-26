@@ -1,0 +1,14 @@
+services:
+  - docker
+
+before_script:
+  - cd tests && docker-compose up --build -d
+  - until docker-compose exec --user www-data app /bin/bash -c "cp -R /tmp/groupfolders /var/www/html/custom_apps/groupfolders && php occ app:enable groupfolders"; do sleep 1; done
+
+# commands to run tests
+script:
+  - docker-compose run --rm python-api pytest
+  - docker-compose run --rm python-api python example.py
+
+after_script:
+  - docker-compose down -v
