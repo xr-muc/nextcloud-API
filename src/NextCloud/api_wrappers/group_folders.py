@@ -1,4 +1,4 @@
-from src.base import WithRequester
+from NextCloud.base import WithRequester
 
 
 class GroupFolders(WithRequester):
@@ -119,4 +119,3 @@ class GroupFolders(WithRequester):
         """
         url = "/".join([str(fid), "mountpoint"])
         return self.requester.post(url=url, data={"mountpoint": mountpoint})
-

@@ -1,4 +1,4 @@
-from src.base import WithRequester
+from NextCloud.base import WithRequester
 
 
 class Group(WithRequester):
@@ -56,5 +56,3 @@ class Group(WithRequester):
         :return:
         """
         return self.requester.delete("{gid}".format(gid=gid))
-
-

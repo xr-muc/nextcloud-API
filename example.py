@@ -1,6 +1,11 @@
+import sys
 import os
+from os.path import dirname
+from os.path import join
 
-import src.NextCloud as NextCloud
+sys.path.insert(0, join(dirname(__file__), 'src'))
+
+from NextCloud import NextCloud
 
 NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
 NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')
@@ -10,7 +15,7 @@ NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_ADMIN_PASSWORD')
 # False if you want to get response as XML
 to_js = True
 
-nxc = NextCloud.NextCloud(endpoint=NEXTCLOUD_URL, user=NEXTCLOUD_USERNAME, password=NEXTCLOUD_PASSWORD, js=to_js)
+nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=NEXTCLOUD_USERNAME, password=NEXTCLOUD_PASSWORD, json_output=to_js)
 
 # Quick start
 nxc.get_users()

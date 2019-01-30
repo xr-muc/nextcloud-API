@@ -1,4 +1,4 @@
-from src.base import Permission, QUOTA_UNLIMITED
+from NextCloud.base import Permission, QUOTA_UNLIMITED
 
 from .base import BaseTestCase
 
@@ -128,20 +128,3 @@ class TestGroupFolders(BaseTestCase):
 
         # clear
         self.clear(nxc=self.nxc, group_ids=[group_id], group_folder_ids=[group_folder_id])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -34,6 +34,3 @@ class TestNotifications(BaseTestCase):
         # TODO: add more tests if WebDAV api will be implemented and there will be ability to make actions
         #  using api which creates notifications (mentions in comments)
         #  or when Federated file sharings api will be implemented (harder way)
-
-
-

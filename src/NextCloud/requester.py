@@ -2,10 +2,10 @@ import requests
 
 
 class Requester(object):
-    def __init__(self, endpoint, user, passwd, js=False):
+    def __init__(self, endpoint, user, passwd, json_output=False):
         self.query_components = []
 
-        self.to_json = js
+        self.json_output = json_output
 
         self.base_url = endpoint
         # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
@@ -17,7 +17,7 @@ class Requester(object):
         self.API_URL = None
 
     def rtn(self, resp):
-        if self.to_json:
+        if self.json_output:
             return resp.json()
         else:
             return resp.content.decode("UTF-8")
@@ -55,12 +55,12 @@ class Requester(object):
         if additional_url and not str(additional_url).startswith("/"):
             additional_url = "/{}".format(additional_url)
 
-        if self.to_json:
+        if self.json_output:
             self.query_components.append("format=json")
 
         ret = "{base_url}{api_url}{additional_url}".format(
             base_url=self.base_url, api_url=self.API_URL, additional_url=additional_url)
 
-        if self.to_json:
+        if self.json_output:
             ret += "?format=json"
         return ret

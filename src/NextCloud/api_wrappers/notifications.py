@@ -1,4 +1,4 @@
-from src.base import WithRequester
+from NextCloud.base import WithRequester
 
 
 class Notifications(WithRequester):
