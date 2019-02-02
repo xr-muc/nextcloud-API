@@ -43,4 +43,3 @@ class TestActivities(BaseTestCase):
             for each in data:
                 assert each['object_id'] == object_to_filter_by['object_id']
                 assert each['object_type'] == object_to_filter_by['object_type']
-

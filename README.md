@@ -1,7 +1,7 @@
 NextCloud Python api
 ====================
 
-[![Build Status](https://travis-ci.org/danil-topc/nextcloud-API.svg?branch=master)](https://travis-ci.org/danil-topc/nextcloud-API)
+[![Build Status](https://travis-ci.org/EnterpriseyIntranet/nextcloud-API.svg?branch=master)](https://travis-ci.org/EnterpriseyIntranet/nextcloud-API)
 
 Overview
 ---------

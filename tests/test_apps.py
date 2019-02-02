@@ -32,5 +32,3 @@ class TestApps(BaseTestCase):
         res = self.nxc.get_app(app)
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
         assert res['ocs']['data']['id'] == app
-
-

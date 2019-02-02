@@ -43,5 +43,3 @@ class TestUserLDAP(BaseTestCase):
         assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
         res = self.nxc.get_ldap_config(config_id)
         assert res['ocs']['meta']['statuscode'] == self.NOT_FOUND_CODE
-
-

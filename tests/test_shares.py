@@ -1,9 +1,9 @@
 import requests
 from datetime import datetime, timedelta
 
-from NextCloud import ShareType, Permission, datetime_to_expire_date
-
 from .base import BaseTestCase, NextCloud, NEXTCLOUD_URL
+
+from NextCloud.base import ShareType, Permission, datetime_to_expire_date
 
 
 class TestShares(BaseTestCase):
@@ -12,7 +12,7 @@ class TestShares(BaseTestCase):
         super(TestShares, self).setUp()
         user_password = self.get_random_string(length=8)
         self.user_username = self.create_new_user('shares_user_', password=user_password)
-        self.nxc_local = self.nxc_local = NextCloud(NEXTCLOUD_URL, self.user_username, user_password, js=True)
+        self.nxc_local = self.nxc_local = NextCloud(NEXTCLOUD_URL, self.user_username, user_password, json_output=True)
         # make user admin
         self.nxc.add_to_group(self.user_username, 'admin')
 
@@ -163,6 +163,3 @@ class TestShares(BaseTestCase):
         assert updated_share_data['expiration'] == "{} 00:00:00".format(expire_date)
 
         self.clear(self.nxc_local, share_ids=[share_id], user_ids=[user_to_share_with])
-
-
-

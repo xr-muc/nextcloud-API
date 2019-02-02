@@ -6,9 +6,9 @@ from unittest import TestCase
 from NextCloud import NextCloud
 
 NEXTCLOUD_VERSION = os.environ.get('NEXTCLOUD_VERSION')
-NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
-NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')
-NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_ADMIN_PASSWORD')
+NEXTCLOUD_URL = "http://{}:80".format(os.environ.get('NEXTCLOUD_HOSTNAME', 'localhost'))
+NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER', 'admin')
+NEXTCLOUD_PASSWORD = os.environ.get('NEXTCLOUD_ADMIN_PASSWORD', 'admin')
 
 
 class BaseTestCase(TestCase):
@@ -23,7 +23,7 @@ class BaseTestCase(TestCase):
 
     def setUp(self):
         self.username = NEXTCLOUD_USERNAME
-        self.nxc = NextCloud(NEXTCLOUD_URL, NEXTCLOUD_USERNAME, NEXTCLOUD_PASSWORD, js=True)
+        self.nxc = NextCloud(NEXTCLOUD_URL, NEXTCLOUD_USERNAME, NEXTCLOUD_PASSWORD, json_output=True)
 
     def create_new_user(self, username_prefix, password=None):
         """ Helper method to create new user """

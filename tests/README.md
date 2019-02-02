@@ -15,7 +15,7 @@ Enable NextCloud groupfolders application:
     
 Run tests:
 
-    docker-compose run --rm python-api pytest
+    docker-compose run --rm python-api python -m pytest
     
 Run examples:
 
