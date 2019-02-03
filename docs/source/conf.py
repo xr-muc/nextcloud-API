@@ -15,6 +15,8 @@
 import json
 import os
 import sys
+from datetime import date
+
 sys.path.insert(0, os.path.abspath('../../'))
 
 
@@ -28,38 +30,46 @@ def make_rst_table_with_header(table_data):
     headers_attributes = table_data['headers attributes']
     data = table_data['data']
 
+    rst_table = ""
+
     # write page title
     rst_table += "{}\n{}\n".format(page_title, "-" * len(page_title))
 
-    # calculate each column max length
+    table_data = [headers]
+    table_links = []
     column_lengths = []
-    for i in range(len(headers)):
-        column_members = [headers[i]]
-        column_members += [each[headers_attributes[i]] for each in data]
-        column_length = max([len(each) for each in column_members])
 
-        column_lengths.append(column_length)
-
-    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
-    # write table headers
-    for i in range(len(headers)):
-        rst_table += headers[i]
-        if i != len(headers) - 1:
-            rst_table += " " * (column_lengths[i] - len(headers[i]) + 1)
-        else:
-            rst_table += "\n"
-
-    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
-    # write table content
-    for each in data:
-        for i in range(len(headers_attributes)):
-            rst_table += each[headers_attributes[i]]
-            if i != len(headers) - 1:
-                rst_table += " " * (column_lengths[i] - len(each[headers_attributes[i]]) + 1)
+    # create list of lists with rows of data
+    for data_row in data:
+        row = []
+        for attr in headers_attributes:
+            if attr == 'name' and 'url' in data_row.keys():
+                row.append("`{}`_".format(data_row[attr]))
+                table_links.append(".. _{}: {}".format(data_row[attr], data_row['url']))
             else:
-                rst_table += "\n"
+                row.append(data_row[attr])
+        table_data += [row]
 
-    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n"
+    # calculate max column length
+    for column_num in range(len(table_data[0])):
+        column_lengths.append(max([len(table_data[row_num][column_num]) for row_num in range(len(table_data))]))
+
+    # add table borders
+    table_data.insert(0, ["=" * column_lengths[i] for i in range(len(column_lengths))])
+    table_data.insert(2, ["=" * column_lengths[i] for i in range(len(column_lengths))])
+
+    # write rst table from table_data list of lists to string
+    for row in table_data:
+        for column_num in range(len(row)):
+            rst_table += row[column_num]
+            if column_num != len(row) - 1:
+                rst_table += " " * (column_lengths[column_num] - len(row[column_num]) + 1)
+            else:
+                rst_table += '\n'
+
+    # add links and border
+    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n\n"
+    rst_table += '\n'.join(table_links)
 
     return rst_table
 

@@ -1,46 +1,54 @@
 {
   "title": "Which API does it support?",
-  "headers": ["API name", "url", "Implementation status"],
-  "headers attributes": ["name", "url", "implementation status"],
+  "headers": ["API name", "Implementation status", "Last checked date"],
+  "headers attributes": ["name", "implementation status", "date_last_checked"],
   "data": [
     {
       "name": "User provisioning API",
       "url":  "https://docs.nextcloud.com/server/14/admin_manual/configuration_user/user_provisioning_api.html",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name": "OCS Share API",
       "url": "https://docs.nextcloud.com/server/14/developer_manual/core/ocs-share-api.html",
-      "implementation status": "Partially implemented"
+      "implementation status": "Partially implemented",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name": "WebDAV API",
       "url": "https://docs.nextcloud.com/server/14/developer_manual/client_apis/WebDAV/index.html",
-      "implementation status": "Not implemented"
+      "implementation status": "Not implemented",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name": "Activity app API",
       "url": "https://github.com/nextcloud/activity",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name": "Notifications app API",
       "url": "https://github.com/nextcloud/notifications/",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     },
     {"name":  "The LDAP configuration API",
       "url": "https://docs.nextcloud.com/server/14/admin_manual/configuration_user/user_auth_ldap_api.html",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name": "Capabilities API",
       "url": "https://docs.nextcloud.com/server/14/developer_manual/client_apis/OCS/index.html#capabilities-api",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     },
     {
       "name":  "Group Folders API",
       "url": "https://github.com/nextcloud/groupfolders",
-      "implementation status": "OK"
+      "implementation status": "OK",
+      "date_last_checked": "2019-02-02"
     }
   ]
 }
