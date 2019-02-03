@@ -16,39 +16,39 @@ class TestGroups(BaseTestCase):
 
     def test_get_groups(self):
         res = self.nxc.get_groups()
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-        assert len(res['ocs']['data']['groups']) > 0
+        assert res.status_code == self.SUCCESS_CODE
+        assert len(res.data['groups']) > 0
         # test search argument
         res = self.nxc.get_groups(search=self.group_name)
-        groups = res['ocs']['data']['groups']
+        groups = res.data['groups']
         assert [self.group_name, "everyone"] == groups or [self.group_name] == groups
         # test limit argument
         res = self.nxc.get_groups(limit=0)
-        assert len(res['ocs']['data']['groups']) == 0
+        assert len(res.data['groups']) == 0
 
     def test_add_get_group(self):
         group_name = self.get_random_string(length=4) + "_test_add"
         res = self.nxc.add_group(group_name)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert res.status_code == self.SUCCESS_CODE
         # get single group
         res = self.nxc.get_group(group_name)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert res.status_code == self.SUCCESS_CODE
         # assuming logged in user is admin
         res = self.nxc.get_group("admin")
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-        group_users = res['ocs']['data']['users']
+        assert res.status_code == self.SUCCESS_CODE
+        group_users = res.data['users']
         assert self.username in group_users
 
     def test_delete_group(self):
         group_name = self.get_random_string(length=4) + "_test_delete"
         self.nxc.add_group(group_name)
         res = self.nxc.delete_group(group_name)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert res.status_code == self.SUCCESS_CODE
         res = self.nxc.get_group(group_name)
-        assert res['ocs']['meta']['statuscode'] == self.NOT_FOUND_CODE
+        assert res.status_code == self.NOT_FOUND_CODE
 
     def test_group_subadmins(self):
         self.nxc.create_subadmin(self.user_username, self.group_name)
         res = self.nxc.get_subadmins(self.group_name)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
-        assert res['ocs']['data'] == [self.user_username]
+        assert res.status_code == self.SUCCESS_CODE
+        assert res.data == [self.user_username]

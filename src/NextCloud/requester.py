@@ -1,6 +1,6 @@
 import requests
 
-from .response import WebDAVResponse
+from .response import WebDAVResponse, OCSResponse
 
 
 class Requester(object):
@@ -68,7 +68,15 @@ class Requester(object):
         return ret
 
 
+class OCSRequester(Requester):
+    """ Requester for OCS API """
+
+    def rtn(self, resp):
+        return OCSResponse(response=resp, json_output=self.json_output)
+
+
 class WebDAVRequester(Requester):
+    """ Requester for WebDAV API """
 
     def __init__(self, *args, **kwargs):
         super(WebDAVRequester, self).__init__(*args, **kwargs)

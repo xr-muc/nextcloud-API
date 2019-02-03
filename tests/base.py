@@ -30,13 +30,13 @@ class BaseTestCase(TestCase):
         new_user_username = username_prefix + self.get_random_string(length=4)
         user_password = password or self.get_random_string(length=8)
         res = self.nxc.add_user(new_user_username, user_password)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert res.status_code == self.SUCCESS_CODE
         return new_user_username
 
     def delete_user(self, username):
         """ Helper method to delete user by username """
         res = self.nxc.delete_user(username)
-        assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+        assert res.status_code == self.SUCCESS_CODE
 
     def clear(self, nxc=None, user_ids=None, group_ids=None, share_ids=None, group_folder_ids=None):
         """
@@ -55,19 +55,19 @@ class BaseTestCase(TestCase):
         if share_ids:
             for share_id in share_ids:
                 res = nxc.delete_share(share_id)
-                assert res['ocs']['meta']['statuscode'] == self.SHARE_API_SUCCESS_CODE
+                assert res.status_code == self.SHARE_API_SUCCESS_CODE
         if group_ids:
             for group_id in group_ids:
                 res = nxc.delete_group(group_id)
-                assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+                assert res.status_code == self.SUCCESS_CODE
         if user_ids:
             for user_id in user_ids:
                 res = nxc.delete_user(user_id)
-                assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+                assert res.status_code == self.SUCCESS_CODE
         if group_folder_ids:
             for group_folder_id in group_folder_ids:
                 res = nxc.delete_group_folder(group_folder_id)
-                assert res['ocs']['meta']['statuscode'] == self.SUCCESS_CODE
+                assert res.status_code == self.SUCCESS_CODE
 
     def get_random_string(self, length=6):
         """ Helper method to get random string with set length  """
