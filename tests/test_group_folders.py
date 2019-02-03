@@ -1,4 +1,4 @@
-from NextCloud.base import Permission, QUOTA_UNLIMITED
+from nextcloud.base import Permission, QUOTA_UNLIMITED
 
 from .base import BaseTestCase
 

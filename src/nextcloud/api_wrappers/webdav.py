@@ -3,7 +3,7 @@ import os
 
 import xml.etree.ElementTree as ET
 
-from NextCloud.base import WithRequester
+from nextcloud.base import WithRequester
 
 
 class WebDAV(WithRequester):

@@ -3,7 +3,7 @@ import random
 import string
 from unittest import TestCase
 
-from NextCloud import NextCloud
+from nextcloud import NextCloud
 
 NEXTCLOUD_VERSION = os.environ.get('NEXTCLOUD_VERSION')
 NEXTCLOUD_URL = "http://{}:80".format(os.environ.get('NEXTCLOUD_HOSTNAME', 'localhost'))
