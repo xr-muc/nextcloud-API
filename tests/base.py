@@ -72,3 +72,18 @@ class BaseTestCase(TestCase):
     def get_random_string(self, length=6):
         """ Helper method to get random string with set length  """
         return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+
+
+class LocalNxcUserMixin(object):
+    """Mixin to create new clean NextCloud admin user for tests and delete it on tear down"""
+
+    def setUp(self):
+        super(LocalNxcUserMixin, self).setUp()
+        user_password = self.get_random_string(length=8)
+        self.user_username = self.create_new_user('test_user_', password=user_password)
+        self.nxc_local = self.nxc_local = NextCloud(NEXTCLOUD_URL, self.user_username, user_password, json_output=True)
+        # make user admin
+        self.nxc.add_to_group(self.user_username, 'admin')
+
+    def tearDown(self):
+        self.nxc.delete_user(self.user_username)

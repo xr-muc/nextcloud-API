@@ -8,6 +8,9 @@ from .notifications import Notifications
 from .share import Share
 from .user import User
 from .user_ldap import UserLDAP
+from .webdav import WebDAV
 
 API_CLASSES = [Activity, Apps, Capabilities, FederatedCloudShare, Group, GroupFolders,
                Notifications, Share, User, UserLDAP]
+
+WEBDAV_CLASS = WebDAV

@@ -1,5 +1,7 @@
 import requests
 
+from .response import WebDAVResponse
+
 
 class Requester(object):
     def __init__(self, endpoint, user, passwd, json_output=False):
@@ -64,3 +66,57 @@ class Requester(object):
         if self.json_output:
             ret += "?format=json"
         return ret
+
+
+class WebDAVRequester(Requester):
+
+    def __init__(self, *args, **kwargs):
+        super(WebDAVRequester, self).__init__(*args, **kwargs)
+
+    def rtn(self, resp, data=None):
+        return WebDAVResponse(response=resp, data=data)
+
+    def propfind(self, additional_url="", headers=None, data=None):
+        url = self.get_full_url(additional_url=additional_url)
+        res = requests.request('PROPFIND', url, auth=self.auth_pk, headers=headers, data=data)
+        return self.rtn(res)
+
+    def proppatch(self, additional_url="", data=None):
+        url = self.get_full_url(additional_url=additional_url)
+        res = requests.request('PROPPATCH', url, auth=self.auth_pk, data=data)
+        return self.rtn(resp=res)
+
+    def report(self, additional_url="", data=None):
+        url = self.get_full_url(additional_url=additional_url)
+        res = requests.request('REPORT', url, auth=self.auth_pk, data=data)
+        return self.rtn(resp=res)
+
+    def download(self, url="", params=None):
+        url = self.get_full_url(url)
+        res = requests.get(url, auth=self.auth_pk, headers=self.h_get, params=params)
+        return self.rtn(resp=res, data=res.content)
+
+    def make_collection(self, additional_url=""):
+        url = self.get_full_url(additional_url=additional_url)
+        res = requests.request("MKCOL", url=url, auth=self.auth_pk)
+        return self.rtn(resp=res)
+
+    def move(self, url, destination, overwrite=False):
+        url = self.get_full_url(additional_url=url)
+        destionation_url = self.get_full_url(additional_url=destination)
+        headers = {
+            "Destination": destionation_url,
+            "Overwrite": "T" if overwrite else "F"
+        }
+        res = requests.request("MOVE", url=url, auth=self.auth_pk, headers=headers)
+        return self.rtn(resp=res)
+
+    def copy(self, url, destination, overwrite=False):
+        url = self.get_full_url(additional_url=url)
+        destionation_url = self.get_full_url(additional_url=destination)
+        headers = {
+            "Destination": destionation_url,
+            "Overwrite": "T" if overwrite else "F"
+        }
+        res = requests.request("COPY", url=url, auth=self.auth_pk, headers=headers)
+        return self.rtn(resp=res)
