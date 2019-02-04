@@ -1,23 +1,12 @@
 import requests
 from datetime import datetime, timedelta
 
-from .base import BaseTestCase, NextCloud, NEXTCLOUD_URL
-
 from NextCloud.base import ShareType, Permission, datetime_to_expire_date
 
+from .base import BaseTestCase, LocalNxcUserMixin
 
-class TestShares(BaseTestCase):
 
-    def setUp(self):
-        super(TestShares, self).setUp()
-        user_password = self.get_random_string(length=8)
-        self.user_username = self.create_new_user('shares_user_', password=user_password)
-        self.nxc_local = self.nxc_local = NextCloud(NEXTCLOUD_URL, self.user_username, user_password, json_output=True)
-        # make user admin
-        self.nxc.add_to_group(self.user_username, 'admin')
-
-    def tearDown(self):
-        self.nxc.delete_user(self.user_username)
+class TestShares(LocalNxcUserMixin, BaseTestCase):
 
     def test_share_create_retrieve_delete(self):
         """ shallow test for base retrieving single, list, creating and deleting share """
