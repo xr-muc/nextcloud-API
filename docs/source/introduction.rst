@@ -26,6 +26,8 @@ Then you can work with NextCloud objects:
     :start-after: # Quick start
     :end-before: # End quick start
 
+.. include:: ./api_implementation.rst
+
 Download and install
 --------------------
 

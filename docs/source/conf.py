@@ -12,9 +12,73 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import json
 import os
 import sys
+from datetime import date
+
 sys.path.insert(0, os.path.abspath('../../'))
+
+
+# -- API implementation statuses -----------------------------------------------------
+
+def make_rst_table_with_header(table_data):
+    rst_table = ""
+
+    page_title = table_data['title']
+    headers = table_data['headers']
+    headers_attributes = table_data['headers attributes']
+    data = table_data['data']
+
+    rst_table = ""
+
+    # write page title
+    rst_table += "{}\n{}\n".format(page_title, "-" * len(page_title))
+
+    table_data = [headers]
+    table_links = []
+    column_lengths = []
+
+    # create list of lists with rows of data
+    for data_row in data:
+        row = []
+        for attr in headers_attributes:
+            if attr == 'name' and 'url' in data_row.keys():
+                row.append("`{}`_".format(data_row[attr]))
+                table_links.append(".. _{}: {}".format(data_row[attr], data_row['url']))
+            else:
+                row.append(data_row[attr])
+        table_data += [row]
+
+    # calculate max column length
+    for column_num in range(len(table_data[0])):
+        column_lengths.append(max([len(table_data[row_num][column_num]) for row_num in range(len(table_data))]))
+
+    # add table borders
+    table_data.insert(0, ["=" * column_lengths[i] for i in range(len(column_lengths))])
+    table_data.insert(2, ["=" * column_lengths[i] for i in range(len(column_lengths))])
+
+    # write rst table from table_data list of lists to string
+    for row in table_data:
+        for column_num in range(len(row)):
+            rst_table += row[column_num]
+            if column_num != len(row) - 1:
+                rst_table += " " * (column_lengths[column_num] - len(row[column_num]) + 1)
+            else:
+                rst_table += '\n'
+
+    # add links and border
+    rst_table += " ".join(["=" * each for each in column_lengths]) + "\n\n"
+    rst_table += '\n'.join(table_links)
+
+    return rst_table
+
+
+with open("../../api_implementation.json", "r") as json_data, \
+        open('api_implementation.rst', 'w') as api_implementation:
+    table_data = json.load(json_data)
+    content = make_rst_table_with_header(table_data)
+    api_implementation.write(content)
 
 # -- Project information -----------------------------------------------------
 
