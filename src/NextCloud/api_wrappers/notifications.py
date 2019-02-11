@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class Notifications(WithRequester):
     API_URL = "/ocs/v2.php/apps/notifications/api/v2/notifications"
+    SUCCESS_CODE = 200
 
     def get_notifications(self):
         """ Get list of notifications for a logged in user """

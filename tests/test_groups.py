@@ -29,13 +29,13 @@ class TestGroups(BaseTestCase):
     def test_add_get_group(self):
         group_name = self.get_random_string(length=4) + "_test_add"
         res = self.nxc.add_group(group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         # get single group
         res = self.nxc.get_group(group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         # assuming logged in user is admin
         res = self.nxc.get_group("admin")
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         group_users = res.data['users']
         assert self.username in group_users
 
@@ -43,12 +43,12 @@ class TestGroups(BaseTestCase):
         group_name = self.get_random_string(length=4) + "_test_delete"
         self.nxc.add_group(group_name)
         res = self.nxc.delete_group(group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         res = self.nxc.get_group(group_name)
         assert res.status_code == self.NOT_FOUND_CODE
 
     def test_group_subadmins(self):
         self.nxc.create_subadmin(self.user_username, self.group_name)
         res = self.nxc.get_subadmins(self.group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert res.data == [self.user_username]

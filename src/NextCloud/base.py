@@ -13,6 +13,7 @@ class WithRequester(object):
         """ Get requester instance """
         # dynamically set API_URL for requester
         self._requester.API_URL = self.API_URL
+        self._requester.SUCCESS_CODE = getattr(self, 'SUCCESS_CODE', None)
         return self._requester
 
 

@@ -5,6 +5,7 @@ from NextCloud.base import WithRequester
 
 class UserLDAP(WithRequester):
     API_URL = "/ocs/v2.php/apps/user_ldap/api/v1/config"
+    SUCCESS_CODE = 200
 
     CONFIG_KEYS = [
         "ldapHost",
@@ -118,7 +119,7 @@ for ldap_key in UserLDAP.CONFIG_KEYS:
     def getter_method(param):
         def getter(self, config_id):
             res = self.get_ldap_config(config_id)
-            data = res['ocs']['data']
+            data = res.data
             return data[param]
         getter.__name__ = getter_name
         return getter

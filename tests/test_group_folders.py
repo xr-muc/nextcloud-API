@@ -13,37 +13,37 @@ class TestGroupFolders(BaseTestCase):
         # create new group folder
         folder_mount_point = "test_group_folders_" + self.get_random_string(length=4)
         res = self.nxc.create_group_folder(folder_mount_point)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         group_folder_id = res.data['id']
 
         # get all group folders and check if just created folder is in the list
         res = self.nxc.get_group_folders()
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         group_folders = res.data
         assert str(group_folder_id) in group_folders
         assert group_folders[str(group_folder_id)]['mount_point'] == folder_mount_point
 
         # retrieve single folder
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert str(res.data['id']) == str(group_folder_id)
         assert res.data['mount_point'] == folder_mount_point
 
         # rename group folder
         new_folder_mount_point = folder_mount_point + '_new'
         res = self.nxc.rename_group_folder(group_folder_id, new_folder_mount_point)
-        assert res.status_code == self.SUCCESS_CODE and res.data is True
+        assert res.is_ok and res.data is True
         # check if name was changed
         res = self.nxc.get_group_folder(group_folder_id)
         assert res.data['mount_point'] == new_folder_mount_point
 
         # delete group folder
         res = self.nxc.delete_group_folder(group_folder_id)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert res.data is True
         # check that deleted folder isn't retrieved
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert res.data is False
 
     def test_grant_revoke_access_to_group_folder(self):
@@ -62,7 +62,7 @@ class TestGroupFolders(BaseTestCase):
 
         # grant access to group
         res = self.nxc.grant_access_to_group_folder(group_folder_id, group_id)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert res.data is True
 
         # check that folder has this group
@@ -71,7 +71,7 @@ class TestGroupFolders(BaseTestCase):
 
         # revoke access
         res = self.nxc.revoke_access_to_group_folder(group_folder_id, group_id)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert res.data is True
 
         # check that folder has no groups again
@@ -94,7 +94,7 @@ class TestGroupFolders(BaseTestCase):
         # set quota
         QUOTA_ONE_GB = 1024 * 1024 * 1024
         res = self.nxc.set_quota_of_group_folder(group_folder_id, QUOTA_ONE_GB)
-        assert res.status_code == self.SUCCESS_CODE and res.data is True
+        assert res.is_ok and res.data is True
         # check if quota changed
         res = self.nxc.get_group_folder(group_folder_id)
         assert str(res.data['quota']) == str(QUOTA_ONE_GB)
@@ -121,7 +121,8 @@ class TestGroupFolders(BaseTestCase):
         # set permissions
         new_permission = Permission.READ + Permission.CREATE
         res = self.nxc.set_permissions_to_group_folder(group_folder_id, group_id, new_permission)
-        assert res.status_code == self.SUCCESS_CODE and res.data is True
+        assert res.is_ok
+        assert res.data is True
         # check if permissions changed
         res = self.nxc.get_group_folder(group_folder_id)
         assert str(res.data['groups'][group_id]) == str(new_permission)

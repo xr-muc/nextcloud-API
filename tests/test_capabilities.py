@@ -5,5 +5,5 @@ class TestCapabilities(BaseTestCase):
 
     def test_get_capabilities(self):
         res = self.nxc.get_capabilities()
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert str(res.data['version']['major']) == NEXTCLOUD_VERSION

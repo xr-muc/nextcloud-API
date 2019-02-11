@@ -12,12 +12,12 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
         """ shallow test for base retrieving single, list, creating and deleting share """
         # check no shares exists
         res = self.nxc_local.get_shares()
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         assert len(res.data) == 0
 
         # create public share
         res = self.nxc_local.create_share('Documents', share_type=ShareType.PUBLIC_LINK.value)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         share_id = res.data['id']
 
         # get all shares
@@ -28,7 +28,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
 
         # get single share info
         created_share = self.nxc_local.get_share_info(share_id)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         created_share_data = created_share.data[0]
         assert created_share_data['id'] == share_id
         assert created_share_data['share_type'] == ShareType.PUBLIC_LINK.value
@@ -36,7 +36,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
 
         # delete share
         res = self.nxc_local.delete_share(share_id)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         all_shares = self.nxc_local.get_shares().data
         assert len(all_shares) == 0
 
@@ -55,12 +55,12 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
                                               share_type=share_type,
                                               share_with=share_with,
                                               permissions=permissions)
-            assert res.status_code == self.SHARE_API_SUCCESS_CODE
+            assert res.is_ok
             share_id = res.data['id']
 
             # check if shared with right user/group, permission
             created_share = self.nxc_local.get_share_info(share_id)
-            assert res.status_code == self.SHARE_API_SUCCESS_CODE
+            assert res.is_ok
             created_share_data = created_share.data[0]
             assert created_share_data['id'] == share_id
             assert created_share_data['share_type'] == share_type
@@ -76,7 +76,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
         res = self.nxc_local.create_share(path=share_path,
                                           share_type=ShareType.PUBLIC_LINK.value,
                                           password=self.get_random_string(length=8))
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         share_url = res.data['url']
         share_resp = requests.get(share_url)
         assert "This share is password-protected" in share_resp.text
@@ -89,7 +89,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
 
         # check that path has no shares yet
         res = self.nxc_local.get_shares_from_path(share_path)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         assert len(res.data) == 0
 
         # first path share
@@ -106,7 +106,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
 
         # check that path has two shares
         res = self.nxc_local.get_shares_from_path(share_path)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         assert len(res.data) == 2
         assert all([each['id'] in all_shares_ids for each in res.data])
 
@@ -124,13 +124,13 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
                                           share_type=ShareType.USER.value,
                                           share_with=user_to_share_with,
                                           permissions=Permission.READ.value)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
         share_id = res.data['id']
 
         # update share permissions
         new_permissions = Permission.READ.value + Permission.CREATE.value
         res = self.nxc_local.update_share(share_id, permissions=new_permissions)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
 
         updated_share_data = res.data
         assert updated_share_data['id'] == share_id
@@ -142,7 +142,7 @@ class TestShares(LocalNxcUserMixin, BaseTestCase):
         # update share expire date
         expire_date = datetime_to_expire_date(datetime.now() + timedelta(days=5))
         res = self.nxc_local.update_share(share_id, expire_date=expire_date)
-        assert res.status_code == self.SHARE_API_SUCCESS_CODE
+        assert res.is_ok
 
         updated_share_data = res.data
         assert updated_share_data['id'] == share_id

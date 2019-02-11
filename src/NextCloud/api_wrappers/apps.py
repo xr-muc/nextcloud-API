@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class Apps(WithRequester):
     API_URL = "/ocs/v1.php/cloud/apps"
+    SUCCESS_CODE = 100
 
     def get_apps(self, filter=None):
         """

@@ -54,12 +54,14 @@ class WebDAV(WithRequester):
         resp = self.requester.propfind(additional_url=additional_url,
                                        headers={"Depth": str(depth)},
                                        data=data)
-        if resp.raw.status_code != 207:
-            return []
+        if not resp.is_ok:
+            resp.data = None
+            return resp
         response_data = resp.data
         response_xml_data = ET.fromstring(response_data)
         files_data = [File(single_file) for single_file in response_xml_data]
-        return files_data if not self.json_output else [each.as_dict() for each in files_data]
+        resp.data = files_data if not self.json_output else [each.as_dict() for each in files_data]
+        return resp
 
     def download_file(self, uid, path):
         """
@@ -81,7 +83,7 @@ class WebDAV(WithRequester):
         file_data = self.list_folders(uid=uid, path=path, depth=0)
         if not file_data:
             raise ValueError("Given path doesn't exist")
-        file_resource_type = file_data[0].get('resource_type') if self.json_output else file_data.resource_type
+        file_resource_type = file_data.data[0].get('resource_type') if self.json_output else file_data.data[0].resource_type
         if file_resource_type == File.COLLECTION_RESOURCE_TYPE:
             raise ValueError("This is a collection, please specify file path")
         if filename in os.listdir('./'):
@@ -190,9 +192,13 @@ class WebDAV(WithRequester):
         """
         url = "/".join([uid, path])
         res = self.requester.report(additional_url=url, data=data)
+        if not res.is_ok:
+            res.data = None
+            return res
         response_xml_data = ET.fromstring(res.data)
         files_data = [File(single_file) for single_file in response_xml_data]
-        return files_data if not self.json_output else [each.as_dict() for each in files_data]
+        res.data = files_data if not self.json_output else [each.as_dict() for each in files_data]
+        return res
 
 
 class File(object):
@@ -254,3 +260,10 @@ class File(object):
     def as_dict(self):
         return {key: value for key, value in self.__dict__.items() if key in self.FILE_PROPERTIES.values()}
 
+
+class WebDAVStatusCodes(object):
+    CREATED_CODE = 201
+    NO_CONTENT_CODE = 204
+    MULTISTATUS_CODE = 207
+    ALREADY_EXISTS_CODE = 405
+    PRECONDITION_FAILED_CODE = 412

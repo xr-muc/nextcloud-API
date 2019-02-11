@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class GroupFolders(WithRequester):
     API_URL = "/apps/groupfolders/folders"
+    SUCCESS_CODE = 100
 
     def get_group_folders(self):
         """

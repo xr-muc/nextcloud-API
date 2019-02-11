@@ -5,7 +5,7 @@ class TestUsers(BaseTestCase):
 
     def test_get_users(self):
         res = self.nxc.get_users()
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         assert len(res.data['users']) > 0
         # test search argument
         res = self.nxc.get_users(search=self.username)
@@ -17,7 +17,7 @@ class TestUsers(BaseTestCase):
 
     def test_get_user(self):
         res = self.nxc.get_user(self.username)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         user = res.data
         assert user['id'] == self.username
         assert user['enabled']
@@ -25,7 +25,7 @@ class TestUsers(BaseTestCase):
     def test_add_user(self):
         new_user_username = self.get_random_string(length=4) + "test_add"
         res = self.nxc.add_user(new_user_username, self.get_random_string(length=8))
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         added_user = self.nxc.get_user(new_user_username).data
         assert added_user['id'] == new_user_username and added_user['enabled']
         # adding same user will fail
@@ -48,7 +48,7 @@ class TestUsers(BaseTestCase):
         new_user_username = self.get_random_string(length=4) + "test_enable"
         self.nxc.add_user(new_user_username, self.get_random_string(length=8))
         res = self.nxc.delete_user(new_user_username)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         user_res = self.nxc.get_user(new_user_username)
         assert user_res.status_code == self.NOT_FOUND_CODE
 
@@ -66,7 +66,7 @@ class TestUsers(BaseTestCase):
         }
         for key, value in new_user_values.items():
             res = self.nxc.edit_user(new_user_username, key, value)
-            assert res.status_code == self.SUCCESS_CODE
+            assert res.is_ok
 
     def test_resend_welcome_mail(self):
         # TODO: add mock of SMTP data to test this method
@@ -89,25 +89,25 @@ class TestUserGroups(BaseTestCase):
     def test_add_remove_user_from_group(self):
         # add to group
         res = self.nxc.add_to_group(self.user_username, self.group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         group_members = self.nxc.get_group(self.group_name).data['users']
         assert self.user_username in group_members
         # remove from group
         res = self.nxc.remove_from_group(self.user_username, self.group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         group_members = self.nxc.get_group(self.group_name).data['users']
         assert self.user_username not in group_members
 
     def test_create_retrieve_delete_subadmin(self):
         # promote to subadmin
         res = self.nxc.create_subadmin(self.user_username, self.group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         # get subadmin groups
         subadmin_groups = self.nxc.get_subadmin_groups(self.user_username)
-        assert subadmin_groups.status_code == self.SUCCESS_CODE
+        assert subadmin_groups.is_ok
         assert self.group_name in subadmin_groups.data
         # demote from subadmin
         res = self.nxc.remove_subadmin(self.user_username, self.group_name)
-        assert res.status_code == self.SUCCESS_CODE
+        assert res.is_ok
         subadmin_groups = self.nxc.get_subadmin_groups(self.user_username).data
         assert self.group_name not in subadmin_groups
