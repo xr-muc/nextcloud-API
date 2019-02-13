@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from .base import BaseTestCase
 
-from NextCloud.api_wrappers.user_ldap import UserLDAP
+from nextcloud.api_wrappers.user_ldap import UserLDAP
 
 
 class TestUserLDAP(BaseTestCase):

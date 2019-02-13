@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timedelta
 
-from NextCloud.base import ShareType, Permission, datetime_to_expire_date
+from nextcloud.base import ShareType, Permission, datetime_to_expire_date
 
 from .base import BaseTestCase, LocalNxcUserMixin
 

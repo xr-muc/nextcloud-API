@@ -5,7 +5,7 @@ from os.path import join
 
 sys.path.insert(0, join(dirname(__file__), 'src'))
 
-from NextCloud import NextCloud
+from nextcloud import NextCloud
 
 NEXTCLOUD_URL = "http://{}:80".format(os.environ['NEXTCLOUD_HOSTNAME'])
 NEXTCLOUD_USERNAME = os.environ.get('NEXTCLOUD_ADMIN_USER')

@@ -1,4 +1,4 @@
-from NextCloud.base import WithRequester
+from nextcloud.base import WithRequester
 
 
 class FederatedCloudShare(WithRequester):

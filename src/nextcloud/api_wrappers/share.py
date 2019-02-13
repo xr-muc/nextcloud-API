@@ -1,4 +1,4 @@
-from NextCloud.base import WithRequester, ShareType
+from nextcloud.base import WithRequester, ShareType
 
 
 class Share(WithRequester):

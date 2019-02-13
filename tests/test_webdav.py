@@ -2,7 +2,7 @@ import os
 from requests.utils import quote
 
 from .base import BaseTestCase, LocalNxcUserMixin
-from NextCloud.api_wrappers import WebDAV
+from nextcloud.api_wrappers import WebDAV
 
 
 class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
