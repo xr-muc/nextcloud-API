@@ -31,7 +31,10 @@ Then you can work with NextCloud objects:
 Download and install
 --------------------
 
-TBD
+.. code-block:: python
+
+   python setup.py install
+
 
 License
 -------
