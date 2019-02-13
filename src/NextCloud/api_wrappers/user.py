@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class User(WithRequester):
     API_URL = "/ocs/v1.php/cloud/users"
+    SUCCESS_CODE = 100
 
     def add_user(self, uid, passwd):
         """

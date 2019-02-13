@@ -23,11 +23,13 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
 
     def test_list_folders(self):
         res = self.nxc_local.list_folders(self.user_username)
-        assert isinstance(res, list)
-        assert isinstance(res[0], dict)
+        assert res.is_ok
+        assert isinstance(res.data, list)
+        assert isinstance(res.data[0], dict)
         res = self.nxc_local.list_folders(self.user_username, all_properties=True)
-        assert isinstance(res, list)
-        assert isinstance(res[0], dict)
+        assert res.is_ok
+        assert isinstance(res.data, list)
+        assert isinstance(res.data[0], dict)
 
     def test_upload_download_file(self):
         file_name = "test_file"
@@ -35,15 +37,17 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         file_local_path = os.path.join(os.getcwd(), file_name)
         res = self.create_and_upload_file(file_name, file_content)
         # check status code
+        assert res.is_ok
         assert res.raw.status_code == self.CREATED_CODE
 
         # test uploaded file can be found with list_folders
         file_nextcloud_href = os.path.join(WebDAV.API_URL, self.user_username, file_name)
         folder_info = self.nxc_local.list_folders(self.user_username, path=file_name)
-        assert len(folder_info) == 1
-        assert isinstance(folder_info[0], dict)
+        assert folder_info.is_ok
+        assert len(folder_info.data) == 1
+        assert isinstance(folder_info.data[0], dict)
         # check href
-        assert folder_info[0]['href'] == file_nextcloud_href
+        assert folder_info.data[0]['href'] == file_nextcloud_href
 
         # remove file on local machine
         os.remove(file_local_path)
@@ -61,24 +65,28 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
     def test_create_folder(self):
         folder_name = "test folder5"
         res = self.nxc_local.create_folder(self.user_username, folder_name)
+        assert res.is_ok
         assert res.raw.status_code == self.CREATED_CODE
 
         # test uploaded file can be found with list_folders
         file_nextcloud_href = quote(os.path.join(WebDAV.API_URL, self.user_username, folder_name)) + "/"
         folder_info = self.nxc_local.list_folders(self.user_username, path=folder_name)
-        assert len(folder_info) == 1
-        assert isinstance(folder_info[0], dict)
+        assert folder_info.is_ok
+        assert len(folder_info.data) == 1
+        assert isinstance(folder_info.data[0], dict)
         # check href
-        assert folder_info[0]['href'] == file_nextcloud_href
+        assert folder_info.data[0]['href'] == file_nextcloud_href
         # check that created file type is a collection
-        assert folder_info[0]['resource_type'] == self.COLLECTION_TYPE
+        assert folder_info.data[0]['resource_type'] == self.COLLECTION_TYPE
 
         # check 405 status code if location already exists
         res = self.nxc_local.create_folder(self.user_username, folder_name)
+        assert not res.is_ok
         assert res.raw.status_code == self.ALREADY_EXISTS_CODE
 
         # delete folder
         res = self.nxc_local.delete_path(self.user_username, folder_name)
+        assert res.is_ok
         assert res.raw.status_code == self.NO_CONTENT_CODE
 
     def test_delete_path(self):
@@ -87,8 +95,9 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         self.nxc_local.create_folder(self.user_username, new_path_name)
         res = self.nxc_local.delete_path(self.user_username, new_path_name)
         assert res.raw.status_code == self.NO_CONTENT_CODE
+        assert res.is_ok
         res = self.nxc_local.list_folders(self.user_username, new_path_name)
-        assert len(res) == 0
+        assert res.data is None
 
         # test delete file
         # create file at first
@@ -101,12 +110,14 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         # delete file
         res = self.nxc_local.delete_path(self.user_username, file_name)
         assert res.raw.status_code == self.NO_CONTENT_CODE
+        assert res.is_ok
         res = self.nxc_local.list_folders(self.user_username, new_path_name)
-        assert len(res) == 0
+        assert res.data is None
 
         # test delete nonexistent file
         res = self.nxc_local.delete_path(self.user_username, file_name)
-        assert res.raw.status_code == 404
+        assert res.raw.status_code == self.NOT_FOUND_CODE
+        assert not res.is_ok
 
     def test_copy_path(self):
         # create a file to copy
@@ -118,10 +129,12 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         destination_path = "new_test_file_location"
         res = self.nxc_local.copy_path(self.user_username, file_name, destination_path)
         assert res.raw.status_code == self.CREATED_CODE
+        assert res.is_ok
         # check both file exist
         original_file_props = self.nxc_local.list_folders(self.user_username, file_name)
         copy_props = self.nxc_local.list_folders(self.user_username, destination_path)
-        assert len(original_file_props) == 1 and len(copy_props) == 1
+        assert len(original_file_props.data) == 1
+        assert len(copy_props.data) == 1
 
         # copy file to already exist location
         # create new file
@@ -129,9 +142,11 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         new_file_content = 'test_file_3'
         self.create_and_upload_file(new_file_name, new_file_content)
         res = self.nxc_local.copy_path(self.user_username, file_name, new_file_name)
+        assert not res.is_ok
         assert res.raw.status_code == self.PRECONDITION_FAILED_CODE
         # copy with overriding
         res = self.nxc_local.copy_path(self.user_username, file_name, new_file_name, overwrite=True)
+        assert res.is_ok
         assert res.raw.status_code == self.NO_CONTENT_CODE
 
         # download just copied file and check content
@@ -151,11 +166,13 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         # move file
         destination_path = "new_test_move_file_location"
         res = self.nxc_local.move_path(self.user_username, file_name, destination_path)
+        assert res.is_ok
         assert res.raw.status_code == self.CREATED_CODE
         # check only new file exist
         original_file_props = self.nxc_local.list_folders(self.user_username, file_name)
         moved_file = self.nxc_local.list_folders(self.user_username, destination_path)
-        assert len(original_file_props) == 0 and len(moved_file) == 1
+        assert original_file_props.data is None
+        assert len(moved_file.data) == 1
 
         # copy file to already exist location
 
@@ -171,9 +188,11 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
 
         # move file to the new file location
         res = self.nxc_local.move_path(self.user_username, file_name, new_file_name)
+        assert not res.is_ok
         assert res.raw.status_code == self.PRECONDITION_FAILED_CODE
         # move with overriding
         res = self.nxc_local.move_path(self.user_username, file_name, new_file_name, overwrite=True)
+        assert res.is_ok
         assert res.raw.status_code == self.NO_CONTENT_CODE
 
         # download just copied file and check content
@@ -193,14 +212,16 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
 
         # get favorites
         res = self.nxc_local.list_favorites(self.user_username)
-        assert len(res) == 0
+        assert len(res.data) == 0
 
         # set file as favorite
         res = self.nxc_local.set_favorites(self.user_username, file_name)
+        assert res.is_ok
         assert res.raw.status_code == self.MULTISTATUS_CODE
 
         # check file is in favorites
         res = self.nxc_local.list_favorites(self.user_username)
-        assert len(res) == 1
-        assert res[0]['href'] == file_nextcloud_href
+        assert res.is_ok
+        assert len(res.data) == 1
+        assert res.data[0]['href'] == file_nextcloud_href
 

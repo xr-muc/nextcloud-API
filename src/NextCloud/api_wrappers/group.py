@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class Group(WithRequester):
     API_URL = "/ocs/v1.php/cloud/groups"
+    SUCCESS_CODE = 100
 
     def get_groups(self, search=None, limit=None, offset=None):
         """

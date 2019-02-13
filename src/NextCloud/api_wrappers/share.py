@@ -4,6 +4,7 @@ from NextCloud.base import WithRequester, ShareType
 class Share(WithRequester):
     API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
     LOCAL = "shares"
+    SUCCESS_CODE = 200
 
     def get_local_url(self, additional_url=""):
         if additional_url:

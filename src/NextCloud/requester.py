@@ -1,6 +1,6 @@
 import requests
 
-from .response import WebDAVResponse
+from .response import WebDAVResponse, OCSResponse
 
 
 class Requester(object):
@@ -10,13 +10,13 @@ class Requester(object):
         self.json_output = json_output
 
         self.base_url = endpoint
-        # GroupFolders.url = endpoint + "/ocs/v2.php/apps/groupfolders/folders"
 
         self.h_get = {"OCS-APIRequest": "true"}
         self.h_post = {"OCS-APIRequest": "true",
                        "Content-Type": "application/x-www-form-urlencoded"}
         self.auth_pk = (user, passwd)
         self.API_URL = None
+        self.SUCCESS_CODE = None
 
     def rtn(self, resp):
         if self.json_output:
@@ -68,7 +68,15 @@ class Requester(object):
         return ret
 
 
+class OCSRequester(Requester):
+    """ Requester for OCS API """
+
+    def rtn(self, resp):
+        return OCSResponse(response=resp, json_output=self.json_output, success_code=self.SUCCESS_CODE)
+
+
 class WebDAVRequester(Requester):
+    """ Requester for WebDAV API """
 
     def __init__(self, *args, **kwargs):
         super(WebDAVRequester, self).__init__(*args, **kwargs)

@@ -26,13 +26,13 @@ add_group_res = nxc.add_group(group_name)
 add_to_group_res = nxc.add_to_group(new_user_id, group_name)
 # End quick start
 
-assert add_group_res['ocs']['meta']['statuscode'] == 100
-assert new_user_id in nxc.get_group(group_name)['ocs']['data']['users']
-assert add_user_res['ocs']['meta']['statuscode'] == 100
-assert add_to_group_res['ocs']['meta']['statuscode'] == 100
+assert add_group_res.status_code == 100
+assert new_user_id in nxc.get_group(group_name).data['users']
+assert add_user_res.status_code == 100
+assert add_to_group_res.status_code == 100
 
 # remove user
 remove_user_res = nxc.delete_user(new_user_id)
-assert remove_user_res['ocs']['meta']['statuscode'] == 100
+assert remove_user_res.status_code == 100
 user_res = nxc.get_user(new_user_id)
-assert user_res['ocs']['meta']['statuscode'] == 404
+assert user_res.status_code == 404

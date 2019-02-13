@@ -3,6 +3,7 @@ from NextCloud.base import WithRequester
 
 class Activity(WithRequester):
     API_URL = "/ocs/v2.php/apps/activity/api/v2/activity"
+    SUCCESS_CODE = 200
 
     def get_activities(self, since=None, limit=None, object_type=None, object_id=None, sort=None):
         """
