@@ -5,7 +5,7 @@ API name                      Implementation status Last checked date
 ============================= ===================== =================
 `User provisioning API`_      OK                    2019-02-02
 `OCS Share API`_              Partially implemented 2019-02-02
-`WebDAV API`_                 Not implemented       2019-02-02
+`WebDAV API`_                 OK                    2019-02-02
 `Activity app API`_           OK                    2019-02-02
 `Notifications app API`_      OK                    2019-02-02
 `The LDAP configuration API`_ OK                    2019-02-02

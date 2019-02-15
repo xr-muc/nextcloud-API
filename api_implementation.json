@@ -18,7 +18,7 @@
     {
       "name": "WebDAV API",
       "url": "https://docs.nextcloud.com/server/14/developer_manual/client_apis/WebDAV/index.html",
-      "implementation status": "Not implemented",
+      "implementation status": "OK",
       "date_last_checked": "2019-02-02"
     },
     {
