@@ -4,7 +4,7 @@ import setuptools
 SETUPDIR = os.path.dirname(__file__)
 PKGDIR = os.path.join(SETUPDIR, 'src')
 
-with open('README.md', 'r') as f:
+with open(os.path.join(SETUPDIR, 'README.md'), 'r') as f:
     long_description = f.read()
 
 
@@ -19,11 +19,11 @@ setuptools.setup(
     packages=setuptools.find_packages(PKGDIR),
     include_package_data=True,
     install_requires=['requests'],
-    package_dir={'': PKGDIR},
+    package_dir={'': 'src'},
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: GNU General Public License (GPL)',
-        "Operating System :: OS Independent"
+        "Operating System :: OS Independent",
     ],
 )
