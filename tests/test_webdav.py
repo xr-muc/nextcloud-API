@@ -159,12 +159,12 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
 
     def test_move_path(self):
         # create a file to move
-        file_name = "test_move_file"
-        file_content = "test move file content"
+        file_name = "test_move_file 🇳🇴 😗 🇫🇴 🇦🇽"
+        file_content = "test move file content 🇳🇴 😗 🇫🇴 🇦🇽"
         self.create_and_upload_file(file_name, file_content)
 
         # move file
-        destination_path = "new_test_move_file_location"
+        destination_path = "new_test_move_file_location 🇳🇴 😗 🇫🇴 🇦🇽"
         res = self.nxc_local.move_path(self.user_username, file_name, destination_path)
         assert res.is_ok
         assert res.raw.status_code == self.CREATED_CODE
@@ -177,13 +177,13 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         # copy file to already exist location
 
         # create a file to move
-        file_name = "test_move_file"
-        file_content = "test move file content"
+        file_name = "test_move_file 🇳🇴 😗 🇫🇴 🇦🇽"
+        file_content = "test move file content 🇳🇴 😗 🇫🇴 🇦🇽"
         self.create_and_upload_file(file_name, file_content)
 
         # create new file for conflict
-        new_file_name = 'test_move_file_'
-        new_file_content = 'test_move_file_'
+        new_file_name = 'test_move_file_ 🇳🇴 😗 🇫🇴 🇦🇽'
+        new_file_content = 'test_move_file_ 🇳🇴 😗 🇫🇴 🇦🇽'
         self.create_and_upload_file(new_file_name, new_file_content)
 
         # move file to the new file location
