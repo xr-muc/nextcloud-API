@@ -113,7 +113,7 @@ class WebDAVRequester(Requester):
         url = self.get_full_url(additional_url=url)
         destionation_url = self.get_full_url(additional_url=destination)
         headers = {
-            "Destination": destionation_url,
+            "Destination": destionation_url.encode('utf-8'),
             "Overwrite": "T" if overwrite else "F"
         }
         res = requests.request("MOVE", url=url, auth=self.auth_pk, headers=headers)
