@@ -1,6 +1,21 @@
 import requests
+from functools import wraps
 
 from .response import WebDAVResponse, OCSResponse
+
+
+class NextCloudConnectionError(Exception):
+    """ A connection error occurred """
+
+
+def catch_connection_error(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except requests.RequestException:
+            raise NextCloudConnectionError("Failed to establish connection to NextCloud")
+    return wrapper
 
 
 class Requester(object):
@@ -24,21 +39,25 @@ class Requester(object):
         else:
             return resp.content.decode("UTF-8")
 
+    @catch_connection_error
     def get(self, url="", params=None):
         url = self.get_full_url(url)
         res = requests.get(url, auth=self.auth_pk, headers=self.h_get, params=params)
         return self.rtn(res)
 
+    @catch_connection_error
     def post(self, url="", data=None):
         url = self.get_full_url(url)
         res = requests.post(url, auth=self.auth_pk, data=data, headers=self.h_post)
         return self.rtn(res)
 
+    @catch_connection_error
     def put(self, url="", data=None):
         url = self.get_full_url(url)
         res = requests.put(url, auth=self.auth_pk, data=data, headers=self.h_post)
         return self.rtn(res)
 
+    @catch_connection_error
     def delete(self, url="", data=None):
         url = self.get_full_url(url)
         res = requests.delete(url, auth=self.auth_pk, data=data, headers=self.h_post)
@@ -84,31 +103,37 @@ class WebDAVRequester(Requester):
     def rtn(self, resp, data=None):
         return WebDAVResponse(response=resp, data=data)
 
+    @catch_connection_error
     def propfind(self, additional_url="", headers=None, data=None):
         url = self.get_full_url(additional_url=additional_url)
         res = requests.request('PROPFIND', url, auth=self.auth_pk, headers=headers, data=data)
         return self.rtn(res)
 
+    @catch_connection_error
     def proppatch(self, additional_url="", data=None):
         url = self.get_full_url(additional_url=additional_url)
         res = requests.request('PROPPATCH', url, auth=self.auth_pk, data=data)
         return self.rtn(resp=res)
 
+    @catch_connection_error
     def report(self, additional_url="", data=None):
         url = self.get_full_url(additional_url=additional_url)
         res = requests.request('REPORT', url, auth=self.auth_pk, data=data)
         return self.rtn(resp=res)
 
+    @catch_connection_error
     def download(self, url="", params=None):
         url = self.get_full_url(url)
         res = requests.get(url, auth=self.auth_pk, headers=self.h_get, params=params)
         return self.rtn(resp=res, data=res.content)
 
+    @catch_connection_error
     def make_collection(self, additional_url=""):
         url = self.get_full_url(additional_url=additional_url)
         res = requests.request("MKCOL", url=url, auth=self.auth_pk)
         return self.rtn(resp=res)
 
+    @catch_connection_error
     def move(self, url, destination, overwrite=False):
         url = self.get_full_url(additional_url=url)
         destionation_url = self.get_full_url(additional_url=destination)
@@ -119,6 +144,7 @@ class WebDAVRequester(Requester):
         res = requests.request("MOVE", url=url, auth=self.auth_pk, headers=headers)
         return self.rtn(resp=res)
 
+    @catch_connection_error
     def copy(self, url, destination, overwrite=False):
         url = self.get_full_url(additional_url=url)
         destionation_url = self.get_full_url(additional_url=destination)
