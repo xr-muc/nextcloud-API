@@ -13,8 +13,9 @@ def catch_connection_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except requests.RequestException:
-            raise NextCloudConnectionError("Failed to establish connection to NextCloud")
+        except requests.RequestException as e:
+            raise NextCloudConnectionError("Failed to establish connection to NextCloud",
+                                           getattr(e.request, 'url', None), e)
     return wrapper
 
 
