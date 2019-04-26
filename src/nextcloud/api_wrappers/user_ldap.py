@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 
 from nextcloud.base import WithRequester
@@ -84,7 +85,8 @@ class UserLDAP(WithRequester):
         """
         Update a configuration with the provided values
 
-        You can find list of all config keys in get_ldap_config method response or in Nextcloud docs
+        You can find list of all config keys in get_ldap_config method response or in
+        Nextcloud docs
 
         Args:
             config_id (str): User LDAP config id

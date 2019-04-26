@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from nextcloud.base import WithRequester, ShareType
 
 
@@ -24,9 +25,12 @@ class Share(WithRequester):
         Returns:
             bool: True if parameters make sense together, False otherwise
         """
-        if (path is None or not isinstance(share_type, int)) \
-                or (share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
-                    and share_with is None):
+        if (
+            path is None or not isinstance(share_type, int) or (
+                share_with is None and
+                share_type in [ShareType.GROUP, ShareType.USER, ShareType.FEDERATED_CLOUD_SHARE]
+            )
+        ):
             return False
         return True
 
@@ -40,8 +44,10 @@ class Share(WithRequester):
 
         Args:
             path (str): path to file/folder
-            reshares (bool): (optional) return not only the shares from the current user but all shares from the given file
-            subfiles (bool): (optional) return all shares within a folder, given that path defines a folder
+            reshares (bool): (optional) return not only the shares from the current user but
+                all shares from the given file
+            subfiles (bool): (optional) return all shares within a folder, given that path
+                defines a folder
 
         Returns:
 
@@ -49,7 +55,8 @@ class Share(WithRequester):
         url = self.get_local_url()
         params = {
             "path": path,
-            "reshares": None if reshares is None else str(bool(reshares)).lower(),  # TODO: test reshares, subfiles
+            # TODO: test reshares, subfiles
+            "reshares": None if reshares is None else str(bool(reshares)).lower(),
             "subfiles": None if subfiles is None else str(bool(subfiles)).lower(),
         }
         return self.requester.get(url, params=params)
@@ -114,7 +121,8 @@ class Share(WithRequester):
         """
         return self.requester.delete(self.get_local_url(sid))
 
-    def update_share(self, sid, permissions=None, password=None, public_upload=None, expire_date=""):
+    def update_share(self, sid,
+                     permissions=None, password=None, public_upload=None, expire_date=""):
         """
         Update a given share, only one value can be updated per request
 

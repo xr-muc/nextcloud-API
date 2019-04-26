@@ -1,4 +1,5 @@
-from .requester import Requester, OCSRequester, WebDAVRequester
+# -*- coding: utf-8 -*-
+from .requester import OCSRequester, WebDAVRequester
 from .api_wrappers import OCS_API_CLASSES, WEBDAV_CLASS
 
 
@@ -15,6 +16,9 @@ class NextCloud(object):
 
         for functionality_class in self.functionality_classes:
             for potential_method in dir(functionality_class):
-                if potential_method.startswith('_') or not callable(getattr(functionality_class, potential_method)):
+                if(
+                    potential_method.startswith('_')
+                    or not callable(getattr(functionality_class, potential_method))
+                ):
                     continue
                 setattr(self, potential_method, getattr(functionality_class, potential_method))

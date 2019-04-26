@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import os
 
@@ -28,7 +29,8 @@ class WebDAV(WithRequester):
         """
         if all_properties:
             data = """<?xml version="1.0"?>
-                <d:propfind  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+                <d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"
+                            xmlns:nc="http://nextcloud.org/ns">
                   <d:prop>
                         <d:getlastmodified />
                         <d:getetag />
@@ -83,7 +85,9 @@ class WebDAV(WithRequester):
         file_data = self.list_folders(uid=uid, path=path, depth=0)
         if not file_data:
             raise ValueError("Given path doesn't exist")
-        file_resource_type = file_data.data[0].get('resource_type') if self.json_output else file_data.data[0].resource_type
+        file_resource_type = (file_data.data[0].get('resource_type')
+                              if self.json_output
+                              else file_data.data[0].resource_type)
         if file_resource_type == File.COLLECTION_RESOURCE_TYPE:
             raise ValueError("This is a collection, please specify file path")
         if filename in os.listdir('./'):
@@ -139,7 +143,8 @@ class WebDAV(WithRequester):
         """
         path_url = "/".join([uid, path])
         destination_path_url = "/".join([uid, destination_path])
-        return self.requester.move(url=path_url, destination=destination_path_url, overwrite=overwrite)
+        return self.requester.move(url=path_url,
+                                   destination=destination_path_url, overwrite=overwrite)
 
     def copy_path(self, uid, path, destination_path, overwrite=False):
         """
@@ -153,7 +158,8 @@ class WebDAV(WithRequester):
         """
         path_url = "/".join([uid, path])
         destination_path_url = "/".join([uid, destination_path])
-        return self.requester.copy(url=path_url, destination=destination_path_url, overwrite=overwrite)
+        return self.requester.copy(url=path_url,
+                                   destination=destination_path_url, overwrite=overwrite)
 
     def set_favorites(self, uid, path):
         """
@@ -184,7 +190,9 @@ class WebDAV(WithRequester):
         Returns:
         """
         data = """<?xml version="1.0"?>
-        <oc:filter-files  xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" xmlns:nc="http://nextcloud.org/ns">
+        <oc:filter-files xmlns:d="DAV:"
+                         xmlns:oc="http://owncloud.org/ns"
+                         xmlns:nc="http://nextcloud.org/ns">
                  <oc:filter-rules>
                          <oc:favorite>1</oc:favorite>
                  </oc:filter-rules>
@@ -258,7 +266,9 @@ class File(object):
         return None
 
     def as_dict(self):
-        return {key: value for key, value in self.__dict__.items() if key in self.FILE_PROPERTIES.values()}
+        return {key: value
+                for key, value in self.__dict__.items()
+                if key in self.FILE_PROPERTIES.values()}
 
 
 class WebDAVStatusCodes(object):
