@@ -53,7 +53,7 @@ class User(WithRequester):
         :return:
         """
         what_to_key_map = dict(
-            email="email", quota="quote", phone="phone", address="address", website="website",
+            email="email", quota="quota", phone="phone", address="address", website="website",
             twitter="twitter", displayname="displayname", password="password",
         )
         assert what in what_to_key_map, (
