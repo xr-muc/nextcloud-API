@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from nextcloud.base import WithRequester
 
 
@@ -45,7 +46,8 @@ class User(WithRequester):
         """
         Edit attributes related to a user
 
-        Users are able to edit email, displayname and password; admins can also edit the quota value
+        Users are able to edit email, displayname and password; admins can also edit the
+        quota value
 
         :param uid: str, uid of user
         :param what: str, the field to edit
@@ -58,7 +60,7 @@ class User(WithRequester):
         )
         assert what in what_to_key_map, (
             "You have chosen to edit user's '{what}', but you can choose only from: {choices}"
-                .format(what=what, choices=", ".join(what_to_key_map.keys()))
+            .format(what=what, choices=", ".join(what_to_key_map.keys()))
         )
 
         url = "{uid}".format(uid=uid)

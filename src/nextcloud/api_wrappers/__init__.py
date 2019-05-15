@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .activity import Activity
 from .apps import Apps
 from .capabilities import Capabilities

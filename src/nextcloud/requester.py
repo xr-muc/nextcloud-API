@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 from functools import wraps
 
@@ -68,7 +69,8 @@ class Requester(object):
         """
         Build full url for request to NextCloud api
 
-        Construct url from self.base_url, self.API_URL, additional_url (if given), add format=json param if self.json
+        Construct url from self.base_url, self.API_URL, additional_url (if given),
+        add format=json param if self.json
 
         :param additional_url: str
             add to url after api_url
@@ -92,7 +94,8 @@ class OCSRequester(Requester):
     """ Requester for OCS API """
 
     def rtn(self, resp):
-        return OCSResponse(response=resp, json_output=self.json_output, success_code=self.SUCCESS_CODE)
+        return OCSResponse(response=resp,
+                           json_output=self.json_output, success_code=self.SUCCESS_CODE)
 
 
 class WebDAVRequester(Requester):
