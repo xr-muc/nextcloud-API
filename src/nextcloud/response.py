@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from json import JSONDecodeError
+
 from .api_wrappers.webdav import WebDAVStatusCodes
 
 
@@ -44,14 +46,18 @@ class OCSResponse(NextCloudResponse):
     def __init__(self, response, json_output=True, success_code=None):
         self.raw = response
         self.is_ok = None
-        if json_output:
-            self.full_data = response.json()
-            self.meta = self.full_data['ocs']['meta']
-            self.status_code = self.full_data['ocs']['meta']['statuscode']
-            self.data = self.full_data['ocs']['data']
-            if success_code:
-                self.is_ok = self.full_data['ocs']['meta']['statuscode'] == success_code
 
+        if json_output:
+            try:
+                self.full_data = response.json()
+                self.meta = self.full_data['ocs']['meta']
+                self.status_code = self.full_data['ocs']['meta']['statuscode']
+                self.data = self.full_data['ocs']['data']
+                if success_code:
+                    self.is_ok = self.full_data['ocs']['meta']['statuscode'] == success_code
+            except JSONDecodeError:
+                self.is_ok = False
+                self.data = {'message': 'Unable to parse JSON response'}
         else:
             self.data = response.content.decode("UTF-8")
 
