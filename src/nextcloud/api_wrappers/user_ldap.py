@@ -49,7 +49,6 @@ class UserLDAP(WithRequester):
         "ldapAttributesForGroupSearch",
         "ldapExperiencedAdmin",
         "homeFolderNamingRule",
-        "hasPagedResultSupport",
         "hasMemberOfFilterSupport",
         "useMemberOfToDetectMembership",
         "ldapExpertUsernameAttr",

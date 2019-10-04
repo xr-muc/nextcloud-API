@@ -1,5 +1,5 @@
 NextCloud api wrappers
-================
+======================
 
 .. automodule:: nextcloud.api_wrappers
     :members:
