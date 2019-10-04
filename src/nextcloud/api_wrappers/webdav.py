@@ -18,11 +18,13 @@ class WebDAV(WithRequester):
     def list_folders(self, uid, path=None, depth=1, all_properties=False):
         """
         Get path files list with files properties for given user, with given depth
+
         Args:
             uid (str): uid of user
             path (str/None): files path
             depth (int): depth of listing files (directories content for example)
             all_properties (bool): list all available file properties in Nextcloud
+
         Returns:
             list of dicts if json_output
             list of File objects if not json_output
@@ -70,13 +72,16 @@ class WebDAV(WithRequester):
         Download file of given user by path
         File will be saved to working directory
         path argument must be valid file path
+
         Exception will be raised if:
-            path doesn't exist
-            path is a directory
-            file with same name already exists in working directory
+            * path doesn't exist,
+            * path is a directory, or if
+            * file with same name already exists in working directory
+
         Args:
             uid (str): uid of user
             path (str): file path
+
         Returns:
             None
         """
@@ -99,34 +104,45 @@ class WebDAV(WithRequester):
     def upload_file(self, uid, local_filepath, remote_filepath):
         """
         Upload file to Nextcloud storage
+
         Args:
             uid (str): uid of user
             local_filepath (str): path to file on local storage
             remote_filepath (str): path where to upload file on Nextcloud storage
-        Returns:
         """
         with open(local_filepath, 'rb') as f:
-            file_content = f.read()
+            file_contents = f.read()
+        return self.upload_file_contents(uid, file_contents, remote_filepath)
+
+    def upload_file_contents(self, uid, file_contents, remote_filepath):
+        """
+        Upload file to Nextcloud storage
+
+        Args:
+            uid (str): uid of user
+            file_contents (bytes): Bytes the file to be uploaded consists of
+            remote_filepath (str): path where to upload file on Nextcloud storage
+        """
         additional_url = "/".join([uid, remote_filepath])
-        return self.requester.put(additional_url, data=file_content)
+        return self.requester.put(additional_url, data=file_contents)
 
     def create_folder(self, uid, folder_path):
         """
         Create folder on Nextcloud storage
+
         Args:
             uid (str): uid of user
             folder_path (str): folder path
-        Returns:
         """
         return self.requester.make_collection(additional_url="/".join([uid, folder_path]))
 
     def delete_path(self, uid, path):
         """
         Delete file or folder with all content of given user by path
+
         Args:
             uid (str): uid of user
             path (str): file or folder path to delete
-        Returns:
         """
         url = "/".join([uid, path])
         return self.requester.delete(url=url)
@@ -134,12 +150,12 @@ class WebDAV(WithRequester):
     def move_path(self, uid, path, destination_path, overwrite=False):
         """
         Move file or folder to destination
+
         Args:
             uid (str): uid of user
             path (str): file or folder path to move
             destionation_path (str): destination where to move
             overwrite (bool): allow destination path overriding
-        Returns:
         """
         path_url = "/".join([uid, path])
         destination_path_url = "/".join([uid, destination_path])
@@ -149,12 +165,12 @@ class WebDAV(WithRequester):
     def copy_path(self, uid, path, destination_path, overwrite=False):
         """
         Copy file or folder to destination
+
         Args:
             uid (str): uid of user
             path (str): file or folder path to copy
             destionation_path (str): destination where to copy
             overwrite (bool): allow destination path overriding
-        Returns:
         """
         path_url = "/".join([uid, path])
         destination_path_url = "/".join([uid, destination_path])
@@ -164,10 +180,10 @@ class WebDAV(WithRequester):
     def set_favorites(self, uid, path):
         """
         Set files of a user favorite
+
         Args:
             uid (str): uid of user
             path (str): file or folder path to make favorite
-        Returns:
         """
         data = """<?xml version="1.0"?>
         <d:propertyupdate xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
@@ -184,10 +200,10 @@ class WebDAV(WithRequester):
     def list_favorites(self, uid, path=""):
         """
         Set files of a user favorite
+
         Args:
             uid (str): uid of user
             path (str): file or folder path to make favorite
-        Returns:
         """
         data = """<?xml version="1.0"?>
         <oc:filter-files xmlns:d="DAV:"
