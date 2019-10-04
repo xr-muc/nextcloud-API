@@ -67,7 +67,7 @@ class TestGroupFolders(BaseTestCase):
 
         # check that folder has this group
         res = self.nxc.get_group_folder(group_folder_id)
-        assert res.data['groups'] == {group_id: str(Permission.ALL.value)}
+        assert res.data['groups'] == {group_id: Permission.ALL.value}
 
         # revoke access
         res = self.nxc.revoke_access_to_group_folder(group_folder_id, group_id)
