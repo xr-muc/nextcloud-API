@@ -79,6 +79,12 @@ class TestWebDAV(LocalNxcUserMixin, BaseTestCase):
         # check that created file type is a collection
         assert folder_info.data[0]['resource_type'] == self.COLLECTION_TYPE
 
+        nested_folder_name = "test folder5/nested/folder"
+        res = self.nxc_local.assure_tree_exists(self.user_username, nested_folder_name)
+        folder_info = self.nxc_local.list_folders(self.user_username, path=nested_folder_name)
+        assert folder_info.is_ok
+        assert len(folder_info.data) == 1
+
         # check 405 status code if location already exists
         res = self.nxc_local.create_folder(self.user_username, folder_name)
         assert not res.is_ok
