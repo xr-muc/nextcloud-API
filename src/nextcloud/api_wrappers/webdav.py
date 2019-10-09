@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import os
+import pathlib
 
 import xml.etree.ElementTree as ET
 
@@ -135,6 +136,33 @@ class WebDAV(WithRequester):
             folder_path (str): folder path
         """
         return self.requester.make_collection(additional_url="/".join([uid, folder_path]))
+
+    def assure_folder_exists(self, uid, folder_path):
+        """
+        Create folder on Nextcloud storage, don't do anything if the folder already exists.
+        Args:
+            uid (str): uid of user
+            folder_path (str): folder path
+        Returns:
+        """
+        self.create_folder(uid, folder_path)
+        return True
+
+    def assure_tree_exists(self, uid, tree_path):
+        """
+        Make sure that the folder structure on Nextcloud storage exists
+        Args:
+            uid (str): uid of user
+            folder_path (str): The folder tree
+        Returns:
+        """
+        tree = pathlib.PurePath(tree_path)
+        parents = list(tree.parents)
+        ret = True
+        subfolders = parents[:-1][::-1] + [tree]
+        for subf in subfolders:
+            ret = self.assure_folder_exists(uid, str(subf))
+        return ret
 
     def delete_path(self, uid, path):
         """
