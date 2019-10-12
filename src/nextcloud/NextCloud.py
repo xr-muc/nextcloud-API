@@ -6,6 +6,7 @@ from .api_wrappers import OCS_API_CLASSES, WEBDAV_CLASS
 class NextCloud(object):
 
     def __init__(self, endpoint, user, password, json_output=True):
+        self.user = user
         self.query_components = []
 
         ocs_requester = OCSRequester(endpoint, user, password, json_output)
@@ -22,3 +23,16 @@ class NextCloud(object):
                 ):
                     continue
                 setattr(self, potential_method, getattr(functionality_class, potential_method))
+
+    def get_connection_issues(self):
+        """
+        Return Falsy falue if everything is OK, or string representing
+        the connection problem (bad hostname, password, whatever)
+        """
+        try:
+            response = self.get_user(self.user)
+        except Exception as e:
+            return str(e)
+
+        if not response.is_ok:
+            return response.meta["message"]
