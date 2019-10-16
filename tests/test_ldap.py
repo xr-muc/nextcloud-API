@@ -17,6 +17,15 @@ class TestUserLDAP(BaseTestCase):
         assert res.is_ok
         config_id = res.data['configID']
 
+        # We assume that the ID has format s{number}
+        config_number = int(config_id[1:])
+        inferred_config_id = self.nxc.get_ldap_lowest_existing_config_id(
+                config_number - 2, config_number + 2)
+        res = self.nxc.get_ldap_config(inferred_config_id)
+        assert res.is_ok
+
+        self.nxc.ldap_cache_flush(config_id)
+
         # test get config by id
         res = self.nxc.get_ldap_config(config_id)
         assert res.is_ok
