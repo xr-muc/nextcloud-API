@@ -66,6 +66,43 @@ class UserLDAP(WithRequester):
         """ Create a new and empty LDAP configuration """
         return self.requester.post()
 
+    def get_ldap_config_id(self, idx=1):
+        """
+        The LDAP config ID is a string.
+        Given the number of the config file, return the corresponding string ID
+        if the configuration exists.
+
+        Args:
+            idx: The index of the configuration.
+                 If a single configuration exists on the server from the beginning,
+                 it is going to have index of 1.
+
+        Returns:
+            Configuration string or None
+        """
+        config_id = f"s{idx:02d}"
+        config = self.get_ldap_config(config_id)
+        if config.is_ok:
+            return config_id
+        return None
+
+    def get_ldap_lowest_existing_config_id(self, lower_bound=1, upper_bound=10):
+        """
+        Given (inclusive) lower and upper bounds, try to guess an existing LDAP config ID
+        that corresponds to an index within those bounds.
+
+        Args:
+            lower_bound: The lowest index of the configuration possible.
+            upper_bound: The greatest index of the configuration possible.
+
+        Returns:
+            Configuration string or None
+        """
+        for idx in range(lower_bound, upper_bound + 1):
+            config_id = self.get_ldap_config_id(idx)
+            if config_id:
+                return config_id
+
     def get_ldap_config(self, config_id, show_password=None):
         """
         Get all keys and values of the specified LDAP configuration
@@ -96,6 +133,20 @@ class UserLDAP(WithRequester):
         """
         prepared_data = {'configData[{}]'.format(key): value for key, value in data.items()}
         return self.requester.put(config_id, data=prepared_data)
+
+    def ldap_cache_flush(self, config_id):
+        """
+        Flush the cache, so the fresh LDAP DB data is used.
+
+        Implementation detail:
+        This is performed by a fake update of LDAP cache TTL
+        as indicated by
+
+        Args:
+            config_id (str): User LDAP config id
+        """
+        cache_val = self.get_ldap_cache_ttl(config_id)
+        self.set_ldap_cache_ttl(config_id, cache_val)
 
     def delete_ldap_config(self, config_id):
         """
