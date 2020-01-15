@@ -119,7 +119,7 @@ class WebDAV(WithRequester):
             uid (str): uid of user
             local_filepath (str): path to file on local storage
             remote_filepath (str): path where to upload file on Nextcloud storage
-            timestamp (int):  mtime of upload file. If None, get time by file.
+            timestamp (int):  mtime of upload file. If None, get time by local file.
         """
         with open(local_filepath, 'rb') as f:
             file_contents = f.read()
