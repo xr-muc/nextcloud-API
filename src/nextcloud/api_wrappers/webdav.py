@@ -5,6 +5,7 @@ import pathlib
 
 import xml.etree.ElementTree as ET
 
+from datetime import datetime
 from nextcloud.base import WithRequester
 
 
@@ -73,6 +74,7 @@ class WebDAV(WithRequester):
         Download file of given user by path
         File will be saved to working directory
         path argument must be valid file path
+        Modified time of saved file will be synced with the file properties in Nextcloud
 
         Exception will be raised if:
             * path doesn't exist,
@@ -102,7 +104,15 @@ class WebDAV(WithRequester):
         with open(filename, 'wb') as f:
             f.write(res.data)
 
-    def upload_file(self, uid, local_filepath, remote_filepath):
+        # get timestamp of downloaded file from file property on Nextcloud
+        # If it succeeded, set the timestamp to saved local file
+        # If the timestamp string is invalid or broken, the timestamp is downloaded time.
+        file_timestamp_str = (file_data.data[0].get('last_modified'))
+        file_timestamp = timestamp_to_epoch_time(file_timestamp_str)
+        if isinstance(file_timestamp, int):
+            os.utime(filename, (datetime.now().timestamp(), file_timestamp))
+
+    def upload_file(self, uid, local_filepath, remote_filepath, timestamp=None):
         """
         Upload file to Nextcloud storage
 
@@ -110,12 +120,15 @@ class WebDAV(WithRequester):
             uid (str): uid of user
             local_filepath (str): path to file on local storage
             remote_filepath (str): path where to upload file on Nextcloud storage
+            timestamp (int): timestamp of upload file. If None, get time by local file.
         """
         with open(local_filepath, 'rb') as f:
             file_contents = f.read()
-        return self.upload_file_contents(uid, file_contents, remote_filepath)
+        if timestamp is None:
+            timestamp = int(os.path.getmtime(local_filepath))
+        return self.upload_file_contents(uid, file_contents, remote_filepath, timestamp)
 
-    def upload_file_contents(self, uid, file_contents, remote_filepath):
+    def upload_file_contents(self, uid, file_contents, remote_filepath, timestamp=None):
         """
         Upload file to Nextcloud storage
 
@@ -123,9 +136,10 @@ class WebDAV(WithRequester):
             uid (str): uid of user
             file_contents (bytes): Bytes the file to be uploaded consists of
             remote_filepath (str): path where to upload file on Nextcloud storage
+            timestamp (int):  mtime of upload file
         """
         additional_url = "/".join([uid, remote_filepath])
-        return self.requester.put(additional_url, data=file_contents)
+        return self.requester.put_with_timestamp(additional_url, data=file_contents, timestamp=timestamp)
 
     def create_folder(self, uid, folder_path):
         """
@@ -254,7 +268,6 @@ class WebDAV(WithRequester):
 
 
 class File(object):
-
     SUCCESS_STATUS = 'HTTP/1.1 200 OK'
 
     # key is NextCloud property, value is python variable name
@@ -321,3 +334,23 @@ class WebDAVStatusCodes(object):
     MULTISTATUS_CODE = 207
     ALREADY_EXISTS_CODE = 405
     PRECONDITION_FAILED_CODE = 412
+
+
+def timestamp_to_epoch_time(rfc1123_date=""):
+    """
+    literal date time string (use in DAV:getlastmodified) to Epoch time
+
+    No longer, Only rfc1123-date productions are legal as values for DAV:getlastmodified
+    However, the value may be broken or invalid.
+
+    Args:
+        rfc1123_date (str): rfc1123-date (defined in RFC2616)
+    Return:
+        int or None : Epoch time, if date string value is invalid return None
+    """
+    try:
+        epoch_time = datetime.strptime(rfc1123_date, '%a, %d %b %Y %H:%M:%S GMT').timestamp()
+    except ValueError:
+        # validation error (DAV:getlastmodified property is broken or invalid)
+        return None
+    return int(epoch_time)
