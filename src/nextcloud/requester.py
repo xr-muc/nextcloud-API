@@ -28,7 +28,8 @@ class Requester(object):
 
         self.base_url = endpoint
 
-        self.h_get = {"OCS-APIRequest": "true"}
+        self.h_get = {"OCS-APIRequest": "true",
+                      "Accept": "application/json"}
         self.h_post = {"OCS-APIRequest": "true",
                        "Content-Type": "application/json"}
         self.auth_pk = (user, passwd)
