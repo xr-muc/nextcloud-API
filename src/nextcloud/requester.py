@@ -149,9 +149,9 @@ class WebDAVRequester(Requester):
     @catch_connection_error
     def move(self, url, destination, overwrite=False):
         url = self.get_full_url(additional_url=url)
-        destionation_url = self.get_full_url(additional_url=destination)
+        destination_url = self.get_full_url(additional_url=destination)
         headers = {
-            "Destination": destionation_url.encode('utf-8'),
+            "Destination": destination_url.encode('utf-8'),
             "Overwrite": "T" if overwrite else "F"
         }
         res = requests.request("MOVE", url=url, auth=self.auth_pk, headers=headers)
@@ -160,9 +160,9 @@ class WebDAVRequester(Requester):
     @catch_connection_error
     def copy(self, url, destination, overwrite=False):
         url = self.get_full_url(additional_url=url)
-        destionation_url = self.get_full_url(additional_url=destination)
+        destination_url = self.get_full_url(additional_url=destination)
         headers = {
-            "Destination": destionation_url.encode('utf-8'),
+            "Destination": destination_url.encode('utf-8'),
             "Overwrite": "T" if overwrite else "F"
         }
         res = requests.request("COPY", url=url, auth=self.auth_pk, headers=headers)
