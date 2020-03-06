@@ -5,6 +5,7 @@ from nextcloud.base import WithRequester
 class FederatedCloudShare(WithRequester):
     API_URL = "/ocs/v2.php/apps/files_sharing/api/v1"
     FEDERATED = "remote_shares"
+    SUCCESS_CODE = 200
 
     def get_federated_url(self, additional_url=""):
         if additional_url:
@@ -23,7 +24,7 @@ class FederatedCloudShare(WithRequester):
         url = self.get_federated_url(sid)
         return self.requester.delete(url)
 
-    def list_pending_federated_cloudshares(self, sid):
+    def list_pending_federated_cloudshares(self):
         url = self.get_federated_url("pending")
         return self.requester.get(url)
 
